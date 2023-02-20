@@ -1,0 +1,26 @@
+{
+  "name": "wallet",
+  "version": "1.0.0",
+  "description": "ERC Wallet framework for Eth",
+  "main": "./dist/Wallet.js",
+  "scripts": {
+    "compile": "tsc --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lowecainandaya/eth-wallet.git"
+  },
+  "keywords": [
+    "erc20",
+    "wallet",
+    "crypto",
+    "eth",
+    "bitcoin"
+  ],
+  "author": "Lowe Andaya",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lowecainandaya/eth-wallet/issues"
+  },
+  "homepage": "https://github.com/lowecainandaya/eth-wallet#readme"
+}

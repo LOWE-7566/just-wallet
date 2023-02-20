@@ -21,7 +21,9 @@ class Format {
     const value:string = str.replaceAll(/-|,/g,"");
     this.decimals = decimals ? decimals : 18 ;
     this.inputValue = value || 0 ;
+    // from ethers to wie
     this.wei = utils.parseUnits(value,this.decimals).toString();
+    // from wei to eth
     this.fixed = trim.removedot(utils.formatUnits(this.wei,this.decimals));
       const maxSplited = this.fixed.split(".");
       const  whole = maxSplited[0];
@@ -41,16 +43,19 @@ class Format {
         
       }
   }
+  // returns bigNumber of wie 
   operationSupport(){
     return BigNumber.from(this.wei);
   }
   
+  // return BigNumber of fixed;
   parseOperationSupport(number?:string){
     // number = number.replaceAll(/-|,/g,"");
     const decimal = this.decimals;
     return BigNumber.from(this.fixed);
   }
   
+  // use wie to get Format Object
   static get  Wei(){
     class FormatWie extends Format {
         inputValue:string;
@@ -65,12 +70,15 @@ class Format {
     return FormatWie;
   }
   
-  static Factory(dec:number){
   
+  // to make format parsing of eth easier 
+  static Factory(dec:number){
+    // generating wie from ethers 
     function parse(number:string|number){
       number = number.toString().replaceAll(/-|,/g,"");
      return  utils.parseUnits(number, dec || 18)
    }
+   // return FormatClass from Ether
    parse.Format = function(number:string|number){
      const newFactory = new Format(number.toString(),dec || 18);
      newFactory.inputValue = number;
@@ -86,9 +94,6 @@ class Format {
 
 
 export default Format;
-
-// console.log(Format.Wei("1000",5))
-// console.log(Format.Factory(3).Format(100))
 
 // methods 
 // Format.operationSupport => turning Format.wei to ethers.BigNumber ;
@@ -115,9 +120,6 @@ export default Format;
  * factory.Format(number) // format your factory
  * 
 **/
-// console.log(new Format("100-000",3).parseOperationSupport());
-// console.log(new Format("100-000",3).operationSupport())
-// console.log(new Format("1",3))
 
 
 

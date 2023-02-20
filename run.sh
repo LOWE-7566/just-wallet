@@ -1,0 +1,1 @@
+cd ./front && live-server --port=5000 --host=localhost;

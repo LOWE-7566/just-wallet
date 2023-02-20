@@ -1,14 +1,9 @@
 import types from "@validitor/main/types";
 import Type from "@validitor/main/type";
 import {alphanumeric} from "./Types.js";
-const {str,int} = types;
 
 
 function trim(value:string,place?:number){
-  Type.verify(value,str);
-  if(place){
-    Type.verify(place,alphanumeric);
-  }
   const removalLeading0 = value.replace(/^[0]+/g,"");
   const where:number = place || value.length;
   if(value.length <= where){

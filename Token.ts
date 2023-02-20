@@ -11,9 +11,8 @@ interface Methods{
   name: any;
   symbol: any;
   totalSupply: any;
-  // transfer: any;
-  // transferFrom: any;
   getMetadata : any;
+  address:string;
 }
 
 
@@ -23,10 +22,13 @@ class ERCTokenManeger {
     #contract:any
     defaultMethods:Methods;
     getMetadata:any;
+    
+    
     constructor(provider:any,wallet:any,address:string){
       this.#wallet = new ethers.Wallet(wallet.privateKey,provider);
       this.#contract = new ethers.Contract(address,abi, this.#wallet || provider);
       this.defaultMethods = {
+        address : this.#contract.address,
         allowance: this.#contract.allowance,
         approve: this.#contract.approve,
         balanceOf: this.#contract.balanceOf,
@@ -34,8 +36,6 @@ class ERCTokenManeger {
         name: this.#contract.name,
         symbol: this.#contract.symbol,
         totalSupply: this.#contract.totalSupply,
-        // transfer: this.#contract.transfer,
-        // transferFrom: this.#contract.transferFrom,
         getMetadata : async () => {
           const name = await this.#contract.name();
           const symbol = await this.#contract.symbol();
@@ -48,6 +48,13 @@ class ERCTokenManeger {
 
       
     }
+    
+    // account address;
+    get address(){
+      return this.#wallet.address;
+    }
+    
+    // return metadata => Promise {name,symbol,decimals,totalSupply}
     get metadata() {
       return new Promise((resolve,reject) => {
         this.getMetadata().then((data:any) => {
@@ -55,12 +62,13 @@ class ERCTokenManeger {
         })
       })
     }
-    get balance(){
+    
+    // get balance in Format form 
+    get balance():Promise<any>{
       const address:any = this.#wallet.address;
       const decimals = this.defaultMethods.decimals ;
       const balanceOf = this.defaultMethods.balanceOf ;
       return new Promise((resolve:any,reject:any) => {
-        
         try{
           decimals().then((decimal:any) => {
           balanceOf(address).then((bal:any) => resolve(
@@ -71,6 +79,8 @@ class ERCTokenManeger {
         }
       })
     }
+    
+    // send tokens :Promise
     async send(amount:string|number,to:string){
       const decimals = await this.#contract.decimals();
       const factory = Format.Factory(parseInt(decimals));
@@ -92,6 +102,8 @@ class ERCTokenManeger {
       })
         
     }
+    
+    // estimateGas:promise
      async estimateGas (amount:string|number,to:string){
       const decimals:string = await this.#contract.decimals();
       const factory = Format.Factory(parseInt(decimals));
@@ -106,6 +118,9 @@ class ERCTokenManeger {
     })
   });
 }
+
+    
+    // estimateGas first and send tokens later
     async estimateBeforeSend(amount:string|number,to:string){
           const decimals:string = await this.#contract.decimals();
           const factory:any = Format.Factory(parseInt(decimals));
