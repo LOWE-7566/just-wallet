@@ -1,7 +1,7 @@
 import {ethers} from "ethers";
 import trim from "./trim.js";
 const utils = ethers.utils ;
-const BigNumber = ethers.BigNumber ;
+const BigNumber = ethers.BigNumber;
 
 /**
  * you can separate the number string by hipen ex. 100-000 for 100000 

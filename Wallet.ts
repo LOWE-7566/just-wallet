@@ -18,7 +18,7 @@ const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
     
     
     
-    constructor(wallet:any,provider:any){
+    constructor(wallet:any,provider?:any){
       if(wallet === undefined){
         console.log(wallet);
         throw new Error("Wallet is Emty");

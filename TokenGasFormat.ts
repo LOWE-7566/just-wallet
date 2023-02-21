@@ -1,5 +1,5 @@
 import {ethers} from "ethers";
-import Transaction from "../utils/Transaction.js";
+import Transaction from "./Transaction";
 export class TokenStaticGasFormat {
     estimatedGasInEther:string;
     estimatedGasInWei:string;

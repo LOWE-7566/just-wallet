@@ -1,8 +1,4 @@
-import types from "@validitor/main/types";
-import Type from "@validitor/main/type";
-import {alphanumeric} from "./Types.js";
-
-
+// trim is used to trim the balance or the amount in wallet for wallet balance amount 
 function trim(value:string,place?:number){
   const removalLeading0 = value.replace(/^[0]+/g,"");
   const where:number = place || value.length;
