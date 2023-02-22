@@ -1,4 +1,4 @@
-import{ ethers}  from "ethers";
+import { ethers}  from "ethers";
 import TokenWallet from "./Token.js";
 import Format  from "./Format.js";
 import GasFormat from "./GasFormat.js";
@@ -9,7 +9,7 @@ const abi = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"addre
 
 
 const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
-  class Wallet {
+   export class Wallet {
     #mnemonic:any;
     Wallet:any;
     provider:any
@@ -164,5 +164,7 @@ Wallet {
 }
 
 */
+
+
 
 export default Wallet;

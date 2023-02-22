@@ -1,8 +1,4 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-var ethers = require('ethers');
+import { ethers } from 'ethers';
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -77,8 +73,8 @@ function addZero(value) {
 trim.removedot = removedot;
 trim.addZero = addZero;
 
-const utils = ethers.ethers.utils;
-const BigNumber$1 = ethers.ethers.BigNumber;
+const utils = ethers.utils;
+const BigNumber$1 = ethers.BigNumber;
 class Format {
     constructor(str, decimals) {
         const value = str.replaceAll(/-|,/g, "");
@@ -140,8 +136,8 @@ class Transaction {
     constructor(value, dec) {
         this.amount = value;
         this.stringify = value.toString();
-        this.eth = ethers.ethers.utils.formatUnits(value, dec).toString();
-        this.wei = ethers.ethers.utils.parseUnits(this.eth, dec).toString();
+        this.eth = ethers.utils.formatUnits(value, dec).toString();
+        this.wei = ethers.utils.parseUnits(this.eth, dec).toString();
         this.decimals = dec;
     }
 }
@@ -151,15 +147,15 @@ class TokenStaticGasFormat {
     constructor(tx, estimatedGas, dec) {
         _TokenStaticGasFormat_estimatedGas.set(this, void 0);
         __classPrivateFieldSet(this, _TokenStaticGasFormat_estimatedGas, estimatedGas, "f");
-        this.estimatedGasInEther = ethers.ethers.utils.formatUnits(this.estimatedGas.toString(), dec).toString();
-        this.estimatedGasInWei = ethers.ethers.utils.parseUnits(this.estimatedGasInEther, dec).toString();
+        this.estimatedGasInEther = ethers.utils.formatUnits(this.estimatedGas.toString(), dec).toString();
+        this.estimatedGasInWei = ethers.utils.parseUnits(this.estimatedGasInEther, dec).toString();
         this.toSpend = tx.value.toString();
-        this.toSpendEtherFormat = ethers.ethers.utils.formatUnits(this.toSpend, dec).toString();
+        this.toSpendEtherFormat = ethers.utils.formatUnits(this.toSpend, dec).toString();
         this.transactionInfo = tx;
-        this.totalToken = ethers.ethers.utils.formatUnits(this.toSpend, dec).toString(),
-            this.totalTokenWei = ethers.ethers.utils.parseUnits(ethers.ethers.utils.formatUnits(this.toSpend, dec).toString()).toString();
-        this.totalEthers = ethers.ethers.utils.formatEther(this.estimatedGas.toString()).toString();
-        this.totalWei = ethers.ethers.utils.parseEther(ethers.ethers.utils.formatEther(this.estimatedGas.toString()).toString()).toString();
+        this.totalToken = ethers.utils.formatUnits(this.toSpend, dec).toString(),
+            this.totalTokenWei = ethers.utils.parseUnits(ethers.utils.formatUnits(this.toSpend, dec).toString()).toString();
+        this.totalEthers = ethers.utils.formatEther(this.estimatedGas.toString()).toString();
+        this.totalWei = ethers.utils.parseEther(ethers.utils.formatEther(this.estimatedGas.toString()).toString()).toString();
     }
     get total() {
         return `${this.estimatedGas.toString()} ${this.toSpend}`;
@@ -177,7 +173,7 @@ class TokenGasFormat extends TokenStaticGasFormat {
     }
     send() {
         const gas = this.estimatedGasInWei;
-        const Gas = ethers.ethers.BigNumber.from(gas);
+        const Gas = ethers.BigNumber.from(gas);
         const gasLimit = Gas.toString();
         const transactionInfo = this.transactionInfo;
         const methods = __classPrivateFieldGet(this, _TokenGasFormat_methods, "f");
@@ -213,8 +209,8 @@ class ERCTokenManeger {
     constructor(provider, wallet, address) {
         _ERCTokenManeger_wallet.set(this, void 0);
         _ERCTokenManeger_contract.set(this, void 0);
-        __classPrivateFieldSet(this, _ERCTokenManeger_wallet, new ethers.ethers.Wallet(wallet.privateKey, provider), "f");
-        __classPrivateFieldSet(this, _ERCTokenManeger_contract, new ethers.ethers.Contract(address, abi, __classPrivateFieldGet(this, _ERCTokenManeger_wallet, "f") || provider), "f");
+        __classPrivateFieldSet(this, _ERCTokenManeger_wallet, new ethers.Wallet(wallet.privateKey, provider), "f");
+        __classPrivateFieldSet(this, _ERCTokenManeger_contract, new ethers.Contract(address, abi, __classPrivateFieldGet(this, _ERCTokenManeger_wallet, "f") || provider), "f");
         this.defaultMethods = {
             address: __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").address,
             allowance: __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").allowance,
@@ -315,16 +311,16 @@ class ERCTokenManeger {
 _ERCTokenManeger_wallet = new WeakMap(), _ERCTokenManeger_contract = new WeakMap();
 
 var _StaticGasFormat_estimatedGas, _GasFormat_Wallet;
-const BigNumber = ethers.ethers.BigNumber;
+const BigNumber = ethers.BigNumber;
 class StaticGasFormat {
     constructor(tx, estimatedGas) {
         _StaticGasFormat_estimatedGas.set(this, void 0);
         __classPrivateFieldSet(this, _StaticGasFormat_estimatedGas, estimatedGas, "f");
-        this.estimatedGasInEther = ethers.ethers.utils.formatEther(__classPrivateFieldGet(this, _StaticGasFormat_estimatedGas, "f").toString()).toString();
-        this.estimatedGasInWei = ethers.ethers.utils.parseEther(this.estimatedGasInEther).toString();
+        this.estimatedGasInEther = ethers.utils.formatEther(__classPrivateFieldGet(this, _StaticGasFormat_estimatedGas, "f").toString()).toString();
+        this.estimatedGasInWei = ethers.utils.parseEther(this.estimatedGasInEther).toString();
         this.toSpend = tx.value.toString();
         this.transactionInfo = tx;
-        this.totalEthers = ethers.ethers.utils.formatEther(this.total.toString());
+        this.totalEthers = ethers.utils.formatEther(this.total.toString());
         this.totalWei = this.total.toString();
     }
     get total() {
@@ -359,15 +355,15 @@ class GasFormat extends StaticGasFormat {
 }
 _GasFormat_Wallet = new WeakMap();
 
-const JsonRpcProvider = ethers.ethers.providers.JsonRpcProvider;
+const JsonRpcProvider = ethers.providers.JsonRpcProvider;
 class Provider extends JsonRpcProvider {
     constructor(provider) {
         super(provider);
     }
 }
 
-ethers.ethers.Wallet;
-const EthContract$1 = ethers.ethers.ContractFactory;
+ethers.Wallet;
+const EthContract$1 = ethers.ContractFactory;
 class ContractDeployer extends EthContract$1 {
     constructor(abi, bin, signer) {
         super(abi, bin, signer);
@@ -378,7 +374,7 @@ class ContractDeployer extends EthContract$1 {
 }
 
 var _Contract_contract;
-const EthContract = ethers.ethers.Contract;
+const EthContract = ethers.Contract;
 class Contract {
     constructor(address, abi, signer) {
         _Contract_contract.set(this, void 0);
@@ -434,10 +430,10 @@ class Wallet {
             const isPrivate = wallet.match(privatekeyRegExp);
             const isValidPrivateKey = !!isPrivate;
             if (isValidPrivateKey && (wallet === null || wallet === void 0 ? void 0 : wallet.length) === walletLength) {
-                this.Wallet = new ethers.ethers.Wallet(wallet, provider);
+                this.Wallet = new ethers.Wallet(wallet, provider);
             }
             else {
-                this.Wallet = ethers.ethers.Wallet.fromMnemonic(wallet);
+                this.Wallet = ethers.Wallet.fromMnemonic(wallet);
                 __classPrivateFieldSet(this, _Wallet_mnemonic, wallet, "f");
             }
         }
@@ -518,5 +514,4 @@ class Wallet {
 _Wallet_mnemonic = new WeakMap();
 var Wallet$1 = Wallet;
 
-exports.Wallet = Wallet;
-exports.default = Wallet$1;
+export { Wallet, Wallet$1 as default };
