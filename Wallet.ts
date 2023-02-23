@@ -20,7 +20,6 @@ const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
     
     constructor(wallet:any,provider?:any){
       if(wallet === undefined){
-        console.log(wallet);
         throw new Error("Wallet is Emty");
       }
      this.Wallet = wallet;
@@ -28,6 +27,7 @@ const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
       // provider 
         provider = new Provider(provider || `http://localhost:8545`);
       this.provider = provider ;
+      console.log(provider,signer);
       this.decimals = 18 ;
       
       // if wallet provided mnemonic key or privateKey
@@ -38,8 +38,9 @@ const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
         // if private key is provided
         if(isValidPrivateKey && wallet?.length === walletLength){
           this.Wallet = new ethers.Wallet(wallet,provider);
+          
         } /*mnemonic phrase*/else {
-          this.Wallet = ethers.Wallet.fromMnemonic(wallet);
+          this.Wallet = ethers.Wallet.fromMnemonic(wallet,provider);
           this.#mnemonic = wallet ;
         }
       }/* wallet params will be the wallet*/ else {
@@ -69,6 +70,13 @@ const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
       
     } 
     
+    // signer 
+     get signer (){
+       const __provider = this.provider;
+      return new Promise((r,j) => {
+      __provider.getSigner().then(r);
+      })
+    }
     // send 
     // @params amount is an ethers string or an object used to send ethers 
      send(amount:any,to:any){

@@ -1,13 +1,11 @@
 {
   "name": "walnut-wallet-module-test",
-  "version": "1.0.1",
+  "version": "1.0.5",
   "description": "ERC Wallet framework for Eth",
-  "main": "./dist/bundle.js",
-  "module": "./es6/bundle.js",
+  "main": "./dist/Wallet.js",
+  "module": "./es6/Wallet.js",
   "scripts": {
     "compile": "tsc --watch",
-    "dev": "nodemon ./dist/try",
-    "bundle": "rollup -c",
     "build": "tsc -p tsconfig.json && tsc -p  es6tsconfig.json"
   },
   "repository": {
@@ -33,10 +31,6 @@
     "zod": "^3.20.6"
   },
   "devDependencies": {
-    "@babel/core": "^7.21.0",
-    "@rollup/plugin-babel": "^6.0.3",
-    "@rollup/plugin-typescript": "^11.0.0",
-    "rollup": "^3.17.2",
     "tslib": "^2.5.0",
     "typescript": "^4.9.5"
   }
