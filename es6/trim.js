@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 function trim(value, place) {
     const removalLeading0 = value.replace(/^[0]+/g, "");
     const where = place || value.length;
@@ -19,4 +17,4 @@ function addZero(value) {
 }
 trim.removedot = removedot;
 trim.addZero = addZero;
-exports.default = trim;
+export default trim;

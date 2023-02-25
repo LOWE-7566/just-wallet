@@ -5,6 +5,7 @@ import GasFormat from "./GasFormat.js";
 import Transaction from "./Transaction.js";
 import Provider from "./Provider.js";
 import Contract from "./Contract.js";
+import FromSigner from "./fromSigner"
 const abi = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]`
 
 
@@ -25,9 +26,14 @@ const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
      this.Wallet = wallet;
       const walletLength = 66 ;
       // provider 
-        provider = new Provider(provider || `http://localhost:8545`);
-      this.provider = provider ;
-      console.log(provider,signer);
+      let __provider:any;
+      if(typeof provider === "string"){
+        __provider = new Provider(provider || `http://localhost:8545`);
+      } else {
+        __provider = provider;
+      }
+      
+      this.provider = __provider ;
       this.decimals = 18 ;
       
       // if wallet provided mnemonic key or privateKey
@@ -40,7 +46,9 @@ const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
           this.Wallet = new ethers.Wallet(wallet,provider);
           
         } /*mnemonic phrase*/else {
-          this.Wallet = ethers.Wallet.fromMnemonic(wallet,provider);
+           const fromMnemonicWallet =  ethers.Wallet.fromMnemonic(wallet);
+           const __privateKey = fromMnemonicWallet.privateKey;
+           this.Wallet = new ethers.Wallet(__privateKey,provider);
           this.#mnemonic = wallet ;
         }
       }/* wallet params will be the wallet*/ else {
@@ -69,14 +77,7 @@ const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
       })
       
     } 
-    
-    // signer 
-     get signer (){
-       const __provider = this.provider;
-      return new Promise((r,j) => {
-      __provider.getSigner().then(r);
-      })
-    }
+  
     // send 
     // @params amount is an ethers string or an object used to send ethers 
      send(amount:any,to:any){
@@ -102,26 +103,8 @@ const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
       })
         .catch((err:any) => reject(err))
     })
-    } // working
-    
-    // estimateGas before sending a transaction Promise
-    estimateBeforeSend(amount:any,to:any){
-      const wallet = this.Wallet ;
-      return new Promise((resolve,reject) => {
-        const factory = Format.Factory(18);
-        const tx = {
-          to : to,
-          value : factory(amount)
-        }
-        // estimating gas 
-        this.Wallet.estimateGas(tx).then((c:any) => {
-          const estimatedGas = new Promise((resolve1,reject1) => {
-          resolve1(new GasFormat(tx,c,wallet));
-          });
-          resolve(estimatedGas)
-        })
-      })
     } 
+    
     // estimate gas... 
     estimateGas (amount:any,to:any){
       const factory = Format.Factory(this.decimals);
@@ -138,7 +121,7 @@ const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
     
     // using the ERC20 Wallet
     Token(addr:string){
-      return new TokenWallet(this.provider,this.Wallet,addr);
+      return new TokenWallet(this.Wallet,addr);
     }
     
     static get Contract(){
@@ -148,6 +131,14 @@ const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
     // Format Format
     static get Format(){
       return Format;
+    }
+    // from signer 
+    static get FromSigner() {
+      return FromSigner;
+    }
+    
+     static get Provider(){
+      return Provider;
     }
    }
 

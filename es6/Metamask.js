@@ -38,11 +38,8 @@ class Wallet {
                 this.Wallet = new ethers_1.ethers.Wallet(wallet, provider);
             }
             else {
-                const fromMnemonicWallet = ethers_1.ethers.Wallet.fromMnemonic(wallet);
-                const __privateKey = fromMnemonicWallet.privateKey;
-                this.Wallet != __privateKey ? new Error("Wallet is Emty") : new ethers_1.ethers.Wallet(__privateKey, provider);
+                this.Wallet = ethers_1.ethers.Wallet.fromMnemonic(wallet, provider);
                 __classPrivateFieldSet(this, _Wallet_mnemonic, wallet, "f");
-                console.log(__privateKey);
             }
         }
         else {

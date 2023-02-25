@@ -1,28 +1,23 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const ethers_1 = require("ethers");
-const trim_js_1 = __importDefault(require("./trim.js"));
-const utils = ethers_1.ethers.utils;
-const BigNumber = ethers_1.ethers.BigNumber;
+import { ethers } from "ethers";
+import trim from "./trim.js";
+const utils = ethers.utils;
+const BigNumber = ethers.BigNumber;
 class Format {
     constructor(str, decimals) {
         const value = str.replaceAll(/-|,/g, "");
         this.decimals = decimals ? decimals : 18;
         this.inputValue = value || 0;
         this.wei = utils.parseUnits(value, this.decimals).toString();
-        this.fixed = trim_js_1.default.removedot(utils.formatUnits(this.wei, this.decimals));
+        this.fixed = trim.removedot(utils.formatUnits(this.wei, this.decimals));
         const maxSplited = this.fixed.split(".");
         const whole = maxSplited[0];
         if (maxSplited.length > 1) {
-            const dec = (0, trim_js_1.default)(maxSplited[1], 9);
+            const dec = trim(maxSplited[1], 9);
             this.walletReady = `${whole}.${dec}`;
-            this.moneyValue = `${whole}.${(0, trim_js_1.default)((0, trim_js_1.default)(dec, 2))}`;
+            this.moneyValue = `${whole}.${trim(trim(dec, 2))}`;
             const biglocale = BigInt(whole).toLocaleString();
-            this.separated = `${biglocale}.${(0, trim_js_1.default)(dec)}`;
-            this.moneyValueSeparated = `${biglocale}.${(0, trim_js_1.default)(dec, 2)}`;
+            this.separated = `${biglocale}.${trim(dec)}`;
+            this.moneyValueSeparated = `${biglocale}.${trim(dec, 2)}`;
         }
         else {
             this.walletReady = this.fixed;
@@ -63,4 +58,4 @@ class Format {
         return parse;
     }
 }
-exports.default = Format;
+export default Format;

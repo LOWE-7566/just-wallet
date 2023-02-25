@@ -1,12 +1,14 @@
 {
   "name": "walnut-wallet-module-test",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "ERC Wallet framework for Eth",
   "main": "./dist/Wallet.js",
   "module": "./es6/Wallet.js",
   "scripts": {
     "compile": "tsc --watch",
-    "build": "tsc -p tsconfig.json && tsc -p  es6tsconfig.json"
+    "build": "tsc -p tsconfig.json && tsc -p  es6tsconfig.json",
+    "test": "ts-jest",
+    "jest" : "jest --testTimeout=10000"
   },
   "repository": {
     "type": "git",
@@ -31,6 +33,9 @@
     "zod": "^3.20.6"
   },
   "devDependencies": {
+    "@jest/globals": "^29.4.3",
+    "jest": "^29.4.3",
+    "ts-jest": "^29.0.5",
     "tslib": "^2.5.0",
     "typescript": "^4.9.5"
   }

@@ -6,5 +6,15 @@ class Provider extends JsonRpcProvider {
     constructor(provider) {
         super(provider);
     }
+    get isReady() {
+        return new Promise(async (resolve, reject) => {
+            const ready = await this.ready;
+            if (ready) {
+                resolve(true);
+                return;
+            }
+            reject(false);
+        });
+    }
 }
 exports.default = Provider;

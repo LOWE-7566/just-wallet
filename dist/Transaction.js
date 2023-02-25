@@ -8,6 +8,7 @@ class Transaction {
         this.eth = ethers_1.ethers.utils.formatUnits(value, dec).toString();
         this.wei = ethers_1.ethers.utils.parseUnits(this.eth, dec).toString();
         this.decimals = dec;
+        this.done = true;
     }
 }
 exports.default = Transaction;

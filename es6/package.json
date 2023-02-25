@@ -1,0 +1,9 @@
+{
+  "name": "es6",
+  "version": "0.0.0",
+  "description": "for es6 apps",
+  "main": "../dist/Wallet.js",
+  "module" : "Wallet.js",
+  "type" : "module",
+  "license": "GPL-3.0"
+}
