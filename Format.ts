@@ -9,7 +9,7 @@ const BigNumber = ethers.BigNumber;
 
 
 class Format {
-  decimals:string|number; // decimal count 
+  decimals:number; // decimal count 
   inputValue:string|number; // value provided
   wei:string; // wei the smallest value
   fixed:string; // this is the whole value
@@ -17,10 +17,12 @@ class Format {
   moneyValue:string;
   separated:string;
   moneyValueSeparated:string;
-  constructor(str:string,decimals:number|string){
+  assetValue:string;
+  constructor(str:string,decimals:number){
     const value:string = str.replaceAll(/-|,/g,"");
     this.decimals = decimals ? decimals : 18 ;
     this.inputValue = value || 0 ;
+    this.assetValue = "0";
     // from ethers to wie
     this.wei = utils.parseUnits(value,this.decimals).toString();
     // from wei to eth
@@ -49,9 +51,7 @@ class Format {
   }
   
   // return BigNumber of fixed;
-  parseOperationSupport(number?:string){
-    // number = number.replaceAll(/-|,/g,"");
-    const decimal = this.decimals;
+  parseOperationSupport(){
     return BigNumber.from(this.fixed);
   }
   
@@ -88,6 +88,26 @@ class Format {
    return parse
   
  }
+ 
+ // gerters and setters
+ set value(value:any){
+   this.assetValue = value;
+ }
+ 
+ get value(){
+   const __value = new Format(this.assetValue,2);
+   const wei = BigInt(this.wei);
+   const __valueWei = BigInt(__value.wei);
+   const totalValue = wei * __valueWei;
+   
+   
+   
+   const totalValueFormatFixed = new Format.Wei(totalValue.toString(), this.decimals + 2).fixed;
+   const totalValueFormat = new Format(totalValueFormatFixed,2)
+   return totalValueFormat;
+   
+ }
+ 
 }
 
 

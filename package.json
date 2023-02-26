@@ -8,7 +8,13 @@
     "compile": "tsc --watch",
     "build": "tsc -p tsconfig.json && tsc -p  es6tsconfig.json",
     "test": "ts-jest",
-    "jest" : "jest --testTimeout=10000"
+    "jest" : "jest --testTimeout=25000",
+    "jest-from-signer" : "jest --testTimeout=20000 -- FromSigner.test.js",
+    "jest-wallet" : "jest --testTimeout=20000 -- Wallet.test.js",
+    "jest-wallet-from-mnemonic" : "jest --testTimeout=20000 -- WalletFromMnemonic.test.js",
+    "jest-format" : "jest --testTimeout=20000 -- Format.test.js",
+    "jest-valid-address" : "jest --testTimeout=20000 -- isValidAddress.test.js",
+    "jest-wallet-address" : "jest --testTimeout=20000 -- Wallet-address.test.js"
   },
   "repository": {
     "type": "git",

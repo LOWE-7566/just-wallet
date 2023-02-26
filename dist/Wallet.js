@@ -19,6 +19,7 @@ const Transaction_js_1 = __importDefault(require("./Transaction.js"));
 const Provider_js_1 = __importDefault(require("./Provider.js"));
 const Contract_js_1 = __importDefault(require("./Contract.js"));
 const fromSigner_1 = __importDefault(require("./fromSigner"));
+const checkAddress_1 = __importDefault(require("./checkAddress"));
 const abi = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]`;
 const privatekeyRegExp = /^0x[0-9a-fA-F]/g;
 class Wallet {
@@ -41,17 +42,18 @@ class Wallet {
         if (typeof wallet === "string") {
             const isPrivate = wallet.match(privatekeyRegExp);
             const isValidPrivateKey = !!isPrivate;
+            const splitted = wallet.trim().split(" ");
             if (isValidPrivateKey && (wallet === null || wallet === void 0 ? void 0 : wallet.length) === walletLength) {
                 this.Wallet = new ethers_1.ethers.Wallet(wallet, provider);
             }
-            else {
+            else if (splitted.length >= 12) {
                 const fromMnemonicWallet = ethers_1.ethers.Wallet.fromMnemonic(wallet);
                 const __privateKey = fromMnemonicWallet.privateKey;
                 this.Wallet = new ethers_1.ethers.Wallet(__privateKey, provider);
                 __classPrivateFieldSet(this, _Wallet_mnemonic, wallet, "f");
             }
         }
-        else {
+        else if (wallet._isSigner === true) {
             this.Wallet = wallet;
         }
     }
@@ -68,23 +70,33 @@ class Wallet {
             });
         });
     }
-    send(amount, to) {
-        return new Promise((resolve, reject) => {
+    send(amount, to, gasLimit) {
+        return new Promise(async (resolve, reject) => {
+            const balance = await this.balance;
             const factory = Format_js_1.default.Factory(this.decimals);
+            const tokenAmount = factory(amount);
+            const enoughBalance = BigInt(balance.wei) >= BigInt(tokenAmount);
+            const isValidAddress = (0, checkAddress_1.default)(to);
             var tx = {};
-            if (typeof amount === "object") {
-                amount.amount = factory(amount);
-                tx.to = amount.to;
+            if (gasLimit) {
+                tx.gasLimit = gasLimit;
             }
-            else {
-                tx.to = to;
-                tx.value = factory(amount);
+            tx.to = to;
+            tx.value = factory(amount);
+            if (!isValidAddress.valid) {
+                reject({ msg: "Address Provided is not valid", data: isValidAddress });
+                return;
+            }
+            if (!enoughBalance) {
+                reject({ msg: "Not enough balance to contineu this transaction", transaction: tx, balance: balance });
+                return;
             }
             this.Wallet.sendTransaction(tx).then((result) => {
                 result.Transaction = new Transaction_js_1.default(tx.value, 18);
                 resolve(result);
             })
                 .catch((err) => reject(err));
+            return;
         });
     }
     estimateGas(amount, to) {
@@ -94,6 +106,11 @@ class Wallet {
             value: factory(amount)
         };
         return new Promise((resolve, reject) => {
+            const isValidAddress = (0, checkAddress_1.default)(to);
+            if (!isValidAddress) {
+                reject({ msg: "Address Provided is not valid", data: isValidAddress });
+                return;
+            }
             this.Wallet.estimateGas(tx).then((res) => {
                 resolve(new GasFormat_js_1.default.Static(tx, res));
             });
