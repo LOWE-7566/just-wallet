@@ -14,13 +14,14 @@ import { ethers } from "ethers";
 import Format from "./Format.js";
 import TransactionLogger from "./Transaction.js";
 import GasFormat from "./TokenGasFormat.js";
+import addressValidator from "./checkAddress";
 const abi = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]`;
 class ERCTokenManeger {
-    constructor(provider, wallet, address) {
+    constructor(walletOrProvider, address) {
         _ERCTokenManeger_wallet.set(this, void 0);
         _ERCTokenManeger_contract.set(this, void 0);
-        __classPrivateFieldSet(this, _ERCTokenManeger_wallet, new ethers.Wallet(wallet.privateKey, provider), "f");
-        __classPrivateFieldSet(this, _ERCTokenManeger_contract, new ethers.Contract(address, abi, __classPrivateFieldGet(this, _ERCTokenManeger_wallet, "f") || provider), "f");
+        __classPrivateFieldSet(this, _ERCTokenManeger_wallet, walletOrProvider.Wallet || walletOrProvider, "f");
+        __classPrivateFieldSet(this, _ERCTokenManeger_contract, new ethers.Contract(address, abi, __classPrivateFieldGet(this, _ERCTokenManeger_wallet, "f")), "f");
         this.defaultMethods = {
             address: __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").address,
             allowance: __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").allowance,
@@ -34,27 +35,27 @@ class ERCTokenManeger {
                 const name = await __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").name();
                 const symbol = await __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").symbol();
                 const decimals = await __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").decimals();
-                const totalSupply = await __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").totalSupply();
+                const __totalSupply = await __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").totalSupply();
+                const totalSupply = new Format.Wei(__totalSupply.toString(), decimals.toString());
                 return { name, symbol, decimals, totalSupply };
             }
         };
     }
-    get address() {
-        return __classPrivateFieldGet(this, _ERCTokenManeger_wallet, "f").address;
-    }
     get metadata() {
         return new Promise((resolve, reject) => {
-            this.getMetadata().then((data) => {
+            this.defaultMethods.getMetadata().then((data) => {
                 resolve(data);
             });
         });
     }
     get balance() {
-        const address = __classPrivateFieldGet(this, _ERCTokenManeger_wallet, "f").address;
+        const wallet = __classPrivateFieldGet(this, _ERCTokenManeger_wallet, "f");
         const decimals = this.defaultMethods.decimals;
         const balanceOf = this.defaultMethods.balanceOf;
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             try {
+                const __address = wallet.address || await wallet.getAddress();
+                const address = __address.toString();
                 decimals().then((decimal) => {
                     balanceOf(address).then((bal) => resolve(new Format.Wei(bal.toString(), decimal.toString())));
                 });
@@ -64,21 +65,25 @@ class ERCTokenManeger {
             }
         });
     }
-    async send(amount, to) {
+    async send(amount, to, gasLimit) {
         const decimals = await __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").decimals();
         const factory = Format.Factory(parseInt(decimals));
         var tx = {};
-        if (typeof amount === "object") {
-            const config = amount;
-            amount = factory(config.amount);
-            to = config.to;
-        }
-        else {
-            to = to;
-            amount = factory(amount);
-        }
-        return new Promise((resolve, reject) => {
-            __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").transfer(to, amount).then((c) => {
+        amount = factory(amount);
+        return new Promise(async (resolve, reject) => {
+            const balance = await this.balance;
+            const tokenAmount = factory(amount);
+            const enoughBalance = balance.wei >= tokenAmount.toString();
+            const isValidAddress = addressValidator(to);
+            if (!isValidAddress.valid) {
+                reject({ msg: "Address Provided is not valid", data: isValidAddress });
+                return;
+            }
+            if (!enoughBalance) {
+                reject({ msg: "Not enough balance to contineu this transaction", transaction: tx, balance: balance });
+                return;
+            }
+            __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").transfer(to, amount, { gasLimit: gasLimit }).then((c) => {
                 const Transaction = new TransactionLogger(amount, decimals);
                 resolve(Object.assign(Object.assign({}, c), { Transaction: Transaction }));
             }).catch((err) => reject(err));
@@ -87,28 +92,19 @@ class ERCTokenManeger {
     async estimateGas(amount, to) {
         const decimals = await __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").decimals();
         const factory = Format.Factory(parseInt(decimals));
+        const isValidAddress = addressValidator(to);
         const tx = {
             to: to,
             value: factory(amount)
         };
         return new Promise((resolve, reject) => {
+            if (!isValidAddress.valid) {
+                reject({ msg: "Address Provided is not valid", data: isValidAddress });
+                return;
+            }
             __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").estimateGas.transfer(tx.to, tx.value)
                 .then((res) => {
                 resolve(new GasFormat.Static(tx, res, decimals));
-            });
-        });
-    }
-    async estimateBeforeSend(amount, to) {
-        const decimals = await __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").decimals();
-        const factory = Format.Factory(parseInt(decimals));
-        const tx = {
-            to: to,
-            value: factory(amount)
-        };
-        return new Promise((resolve, reject) => {
-            __classPrivateFieldGet(this, _ERCTokenManeger_contract, "f").estimateGas.transfer(tx.to, tx.value)
-                .then((res) => {
-                resolve(new GasFormat(tx, this.defaultMethods, res, decimals));
             });
         });
     }

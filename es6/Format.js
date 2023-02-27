@@ -7,6 +7,7 @@ class Format {
         const value = str.replaceAll(/-|,/g, "");
         this.decimals = decimals ? decimals : 18;
         this.inputValue = value || 0;
+        this.assetValue = "0";
         this.wei = utils.parseUnits(value, this.decimals).toString();
         this.fixed = trim.removedot(utils.formatUnits(this.wei, this.decimals));
         const maxSplited = this.fixed.split(".");
@@ -30,8 +31,7 @@ class Format {
     operationSupport() {
         return BigNumber.from(this.wei);
     }
-    parseOperationSupport(number) {
-        const decimal = this.decimals;
+    parseOperationSupport() {
         return BigNumber.from(this.fixed);
     }
     static get Wei() {
@@ -56,6 +56,18 @@ class Format {
             return newFactory;
         };
         return parse;
+    }
+    set value(value) {
+        this.assetValue = value;
+    }
+    get value() {
+        const __value = new Format(this.assetValue, 2);
+        const wei = BigInt(this.wei);
+        const __valueWei = BigInt(__value.wei);
+        const totalValue = wei * __valueWei;
+        const totalValueFormatFixed = new Format.Wei(totalValue.toString(), this.decimals + 2).fixed;
+        const totalValueFormat = new Format(totalValueFormatFixed, 2);
+        return totalValueFormat;
     }
 }
 export default Format;

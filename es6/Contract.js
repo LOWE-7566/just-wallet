@@ -1,19 +1,14 @@
-"use strict";
 var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
     if (kind === "m") throw new TypeError("Private method is not writable");
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 var _Contract_contract;
-Object.defineProperty(exports, "__esModule", { value: true });
-const ethers_1 = require("ethers");
-const Wallet_js_1 = __importDefault(require("./Wallet.js"));
-const ContractDeployer_js_1 = __importDefault(require("./ContractDeployer.js"));
-const EthContract = ethers_1.ethers.Contract;
+import { ethers } from "ethers";
+import Wallet from "./Wallet.js";
+import ContractDeployer from "./ContractDeployer.js";
+const EthContract = ethers.Contract;
 class Contract {
     constructor(address, abi, signer) {
         _Contract_contract.set(this, void 0);
@@ -27,7 +22,7 @@ class Contract {
             }
         });
         this.interface = contract.interface;
-        this.signer = new Wallet_js_1.default(signer.provider || signer, signer.privateKey);
+        this.signer = new Wallet(signer.provider || signer, signer.privateKey);
         this.callStatic = contract.callStatic;
         this.estimateGas = contract.estimateGas;
         this.functions = contract.functions;
@@ -46,8 +41,8 @@ class Contract {
         }
     }
     static get Deployer() {
-        return ContractDeployer_js_1.default;
+        return ContractDeployer;
     }
 }
 _Contract_contract = new WeakMap();
-exports.default = Contract;
+export default Contract;

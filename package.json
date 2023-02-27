@@ -1,8 +1,8 @@
 {
   "name": "walnut-wallet-module-test",
-  "version": "1.0.7",
+  "version": "1.0.9",
   "description": "ERC Wallet framework for Eth",
-  "main": "./dist/Wallet.js",
+  "main": "./dist/require.js",
   "module": "./es6/Wallet.js",
   "scripts": {
     "compile": "tsc --watch",
