@@ -1,5 +1,5 @@
 {
-  "name": "walnut-wallet-module-test",
+  "name": "walnut",
   "version": "1.0.9",
   "description": "ERC Wallet framework for Eth",
   "main": "./dist/require.js",
