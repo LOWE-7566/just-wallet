@@ -1,6 +1,6 @@
 {
-  "name": "walnut",
-  "version": "1.0.9",
+  "name": "ethers-wallet-js",
+  "version": "0.0.1",
   "description": "ERC Wallet framework for Eth",
   "main": "./dist/require.js",
   "module": "./es6/Wallet.js",

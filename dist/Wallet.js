@@ -134,4 +134,4 @@ class Wallet {
 }
 exports.Wallet = Wallet;
 _Wallet_mnemonic = new WeakMap();
-exports.default = Wallet;
+module.exports = Wallet;
