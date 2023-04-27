@@ -12,53 +12,64 @@ const abi = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"addre
 
 const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
 export class Wallet {
-  #mnemonic:any;
-  Wallet:any;
-  provider:any
+ #mnemonic:any;
+ #providerInput:any
+ #walletInput:any;
   decimals:number;
-  // Token:any;
-  
   
   
   constructor(wallet:any,provider?:any){
-    if(wallet === undefined){
+     this.#providerInput = provider;
+     this.#walletInput = wallet;
+     this.decimals = 18 ;
+  }
+  
+ // provider 
+ get provider(){
+   let __provider:any;
+    if(typeof this.#providerInput === "string"){
+      __provider = new Provider(this.#providerInput || `http://localhost:8545`);
+    } else if(this.#providerInput?._isProvider){
+      __provider = this.#providerInput;
+    } else {
+       __provider = new Provider(`http://localhost:8545`);
+    }
+    return __provider;
+ }
+ 
+ 
+ get Wallet(){
+    let __wallet;
+    if(this.#walletInput === undefined){
       throw new Error("Wallet is Emty");
     }
-    this.Wallet = wallet;
     const walletLength = 66 ;
-    // provider 
-    let __provider:any;
-    if(typeof provider === "string"){
-      __provider = new Provider(provider || `http://localhost:8545`);
-    } else {
-      __provider = provider;
-    }
+
     
-    this.provider = __provider ;
-    this.decimals = 18 ;
     
     // if wallet provided mnemonic key or privateKey
-    if(typeof wallet === "string"){
-      const isPrivate:any =  wallet.match(privatekeyRegExp);
+    if(typeof __wallet === "string"){
+      const isPrivate:any =  __wallet.match(privatekeyRegExp);
       const isValidPrivateKey = !!isPrivate;
-      const splitted = wallet.trim().split(" ");
+      const splitted = this.#walletInput.trim().split(" ");
       
       // if private key is provided
-      if(isValidPrivateKey && wallet?.length === walletLength){
-        this.Wallet = new ethers.Wallet(wallet,provider);
+      if(isValidPrivateKey && this.#walletInput?.length === walletLength){
+        __wallet = new ethers.Wallet(this.#walletInput,this.provider);
         
       } /*mnemonic phrase*/else if(splitted.length >= 12) {
-        const fromMnemonicWallet =  ethers.Wallet.fromMnemonic(wallet);
+        const fromMnemonicWallet =  ethers.Wallet.fromMnemonic(this.#walletInput);
         const __privateKey = fromMnemonicWallet.privateKey;
-        this.Wallet = new ethers.Wallet(__privateKey,provider);
-        this.#mnemonic = wallet ;
+        __wallet = new ethers.Wallet(__privateKey,this.provider);
+        this.#mnemonic = this.#walletInput ;
       }
     }
-    /* wallet params will be the wallet*/ else if(wallet._isSigner === true){
-      this.Wallet = wallet;
+    /* wallet params will be the wallet*/ else if(this.#walletInput._isSigner === true){
     }
-
-  }
+    return __wallet;
+ }
+  
+  
   
   
   // getter for address
@@ -81,8 +92,26 @@ export class Wallet {
       
     })
     
-  } 
+  }
   
+  // switch account 
+  switchAccount(wallet:any){
+     this.#walletInput = wallet;
+  }
+  
+  // switch network  
+  switchNetwork(providerStringOrProvider:string){
+   this.#providerInput = providerStringOrProvider;
+  }
+  
+ // useAs
+ useAs(wallet:string|ethers.Wallet){
+    return new Wallet(wallet,this.provider);
+ }
+  
+  useAt(provider:string|ethers.providers.JsonRpcProvider|ethers.providers.Web3Provider){
+    return new Wallet(this.#walletInput,provider);
+ }
   // send 
   // @params amount is an ethers string or an object used to send ethers 
   send(amount:any,to:any,gasLimit?:string){
@@ -162,6 +191,10 @@ export class Wallet {
   
   static get Provider(){
     return Provider;
+  }
+  
+  static isValidAddress(address:string){
+     return addressValidator(address);
   }
 }
 
