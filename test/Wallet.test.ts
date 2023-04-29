@@ -1,8 +1,8 @@
-
-const Wallet = require( "../dist/Wallet").default;
-const Format = require("../dist/Format").default;
-const {privateKey, privateKey1,address,address1} = require("./test-declaration");
-
+import {factory} from "./bin";
+import Wallet from "./Wallet"
+import Format from"./Format";
+import {privateKey, privateKey1,address,address1} from "./test-declaration";
+import {it,describe,expect} from "vitest";
 const Provider = new Wallet.Provider();
 // test Wallet ;
 const wallet = new Wallet(privateKey,Provider);
@@ -14,78 +14,87 @@ const walletFromSigner = async () => {
   return __wallet;
 }
 
+
+
+describe("test if wallet works", async () => {
+   
+   const signer =  await Provider.getSigner();
+   const DToken = await factory(signer);
+   const tknAddress = DToken.address;
+   
 // balance
-test("wallet balance ", async () => {
+it("wallet balance ", async () => {
   const balance = await wallet.balance;
   const FormatWei = new Format.Wei(balance.wei, 18)
   console.log(balance);
   expect(balance.fixed).toBe(FormatWei.fixed);
 })
+
+
 // transaction
-test("wallet transaction ", async () => {
+it("wallet transaction ", async () => {
   const transact = await wallet.send("0.0001",address1);
   console.log(transact);
   expect(transact.Transaction.done).toBe(true);
 })
 // gas 
-test("wallet gas ", async () => {
+it("wallet gas ", async () => {
   const gas = await wallet.estimateGas("1",address1);
-  expect(gas).toBeDefined();
+  expect(gas).toBe();
 })
 
-test('wallet property',() => {
+it('wallet property',() => {
   expect(wallet.address).toBe(address);
   expect(wallet.privateKey).toBe(privateKey)
 })
 
 
 //  rejects 
-test("wallet transaction rejected deu to invalid address", async () => {
+it("wallet transaction rejected deu to invalid address", async () => {
   wallet.send("0.0001","address1").catch(err => {
-    expect(err.msg).toBe("Address Provided is not valid")})
+    expect(err.msg).toBe("Address Provided is not valid.")})
 })
 // rejects
-test("wallet transaction rejected deu to not enough balance ", async () => {
+it("wallet transaction rejected deu to not enough balance ", async () => {
   wallet.send("100001",address1).catch((rrr) => { console.log(rrr)
   expect(rrr.msg).toBe("Not enough balance to contineu this transaction")})
 })
 
-
-var tknAddress = "0xb5022316Ee8725c06900dDB16033433c8620e0B9";
 const token = wallet.Token(tknAddress);
 const token1 = wallet1.Token(tknAddress);
-test("Token is Working", async () => {
+it("Token is Working", async () => {
   balance = await token.balance;
-  console.log(balance);
+  
 })
 
-test("token metadata",async () => {
+it("token metadata",async () => {
   const metadata = await token.metadata;
   console.log(metadata);
   expect(metadata).toBeDefined;
 })
 
-test("send token", async () => {
+it("send token", async () => {
   const transaction = await token.send("0", "0x7C1650D9a62f51c8420A91aF4D939b7568909a07");
   console.log(transaction);
   expect(transaction).toBeDefined();
 })
 
 // reject because address is not valid
-test("send token reject because address is not valid", async () => {
+it("send token reject because address is not valid", async () => {
   token.send("0.0001","address1").catch(err => {
     console.log(err);
-    expect(err.msg).toBe("Address Provided is not valid")}
+    expect(err.msg).toBe("Address Provided is not valid.")}
     )
 })
 
-test("send token reject because dont  have any balance", async () => {
+it("send token reject because dont  have any balance", async () => {
     token1.send("100001",address1).catch((rrr) => { console.log(rrr)
   expect(rrr.msg).toBe("Not enough balance to contineu this transaction")})
 })
 // gas
-test("estimateGas token", async () => {
-  const gas = await token.estimateGas("0.0001", address1);
+it("estimateGas token", async () => {
+  const gas = await token.estimateGas("0.000000000001", address1);
   console.log(gas);
   expect(gas).toBeDefined();
+})
 })

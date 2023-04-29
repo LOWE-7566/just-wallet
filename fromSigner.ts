@@ -20,7 +20,7 @@ export class FromSignerWallet {
       if(!signer){
          throw new Error("Signer is not provided");
       }
-      this.#signerInput
+      this.#signerInput = signer;
       this.decimals = 18;
       
    }
