@@ -1,100 +1,68 @@
-import {factory} from "./bin";
-import Wallet from "./Wallet"
-import Format from"./Format";
-import {privateKey, privateKey1,address,address1} from "./test-declaration";
-import {it,describe,expect} from "vitest";
-const Provider = new Wallet.Provider();
-// test Wallet ;
-const wallet = new Wallet(privateKey,Provider);
-const wallet1 = new Wallet(privateKey1,Provider);
-const _signer = async () => await Provider.getSigner();
-const walletFromSigner = async () => {
-  const signer = await _signer();
-  const __wallet = new Wallet.FromSigner(signer);
-  return __wallet;
-}
+import { describe, it, expect} from "vitest";
+import Wallet from "./Wallet";
+import { ethers } from "ethers";
 
-
-
-describe("test if wallet works", async () => {
+describe("Test Wallet", async () => {
+   const provider = new Wallet.Provider();
+   const wallet0 = new ethers.Wallet("0x20f6b3e0228e35d7d75188259a3b468bf4c006602b8c3d2fdd3408409dd52052",provider);
+   const wallet1 = new ethers.Wallet("0x75d65b3f43b5a97104270f05d61fb18c767169848d82d59d5e320e47e3f69738",provider);
+   it("Wallet Metadatadata", async () => {
+      const wallet = new Wallet(wallet0, provider);
+      expect(wallet.address).toBe("0xCca5969eF9abE5F281763D547b1255278E72b980");
+      expect(wallet.address.length).toBe(42);
+      expect(wallet.privateKey).toBe("0x20f6b3e0228e35d7d75188259a3b468bf4c006602b8c3d2fdd3408409dd52052");
+      expect(wallet.privateKey.length).toBe(66);
+   })
    
-   const signer =  await Provider.getSigner();
-   const DToken = await factory(signer);
-   const tknAddress = DToken.address;
+   it("Test Wallet UseAs and useAt", () => {
+      const walletOriginal = new Wallet(wallet0, provider);
+      // new Wallet 
+      const newWallet = walletOriginal.useAs(wallet1)
+      const sameWalletNewProvider = walletOriginal.useAt("http://localhost:8000");
+      // expect wallet to be not equal
+      expect(newWallet.privateKey).not.toBe(walletOriginal.privateKey);
+      // expect sameWalletNewProvider to have deferent Provider 
+      expect(sameWalletNewProvider.provider.connection.url).toBe("http://localhost:8000");
+   })
    
-// balance
-it("wallet balance ", async () => {
-  const balance = await wallet.balance;
-  const FormatWei = new Format.Wei(balance.wei, 18)
-  console.log(balance);
-  expect(balance.fixed).toBe(FormatWei.fixed);
+   it("Change Wallet and Provider", () => {
+      const wallet = new Wallet(wallet0, provider);
+      // make a copy of the original
+      const original = wallet;
+      // switch account
+      wallet.switchAccount("0x75d65b3f43b5a97104270f05d61fb18c767169848d82d59d5e320e47e3f69738");
+      expect(wallet.address).toBe(wallet1.address);
+      wallet.switchNetwork("http://localhost:8000");
+      expect(wallet.provider.connection.url).toBe("http://localhost:8000");
+   })
+   
+   
 })
 
-
-// transaction
-it("wallet transaction ", async () => {
-  const transact = await wallet.send("0.0001",address1);
-  console.log(transact);
-  expect(transact.Transaction.done).toBe(true);
-})
-// gas 
-it("wallet gas ", async () => {
-  const gas = await wallet.estimateGas("1",address1);
-  expect(gas).toBe();
-})
-
-it('wallet property',() => {
-  expect(wallet.address).toBe(address);
-  expect(wallet.privateKey).toBe(privateKey)
-})
-
-
-//  rejects 
-it("wallet transaction rejected deu to invalid address", async () => {
-  wallet.send("0.0001","address1").catch(err => {
-    expect(err.msg).toBe("Address Provided is not valid.")})
-})
-// rejects
-it("wallet transaction rejected deu to not enough balance ", async () => {
-  wallet.send("100001",address1).catch((rrr) => { console.log(rrr)
-  expect(rrr.msg).toBe("Not enough balance to contineu this transaction")})
+describe("Real Transaction  of Wallet", async () => {
+  const provider = new Wallet.Provider();
+   const wallet0 = new ethers.Wallet("0x20f6b3e0228e35d7d75188259a3b468bf4c006602b8c3d2fdd3408409dd52052",provider);
+   const wallet1 = new ethers.Wallet("0x75d65b3f43b5a97104270f05d61fb18c767169848d82d59d5e320e47e3f69738",provider);
+   const wallet = new Wallet(wallet0,provider);
+   
+   it("Send Ether with generic types ", async () => {
+      const transaction =  await wallet.send("0.000-000-0001",wallet1.address);
+      console.log(transaction);
+   })
+   
+   it("send Ether with complex types", async () => {
+      const sendFormated = await wallet.send(new Wallet.Format("0.000-000-0001"),wallet1);
+      console.log(sendFormated);
+   })
 })
 
-const token = wallet.Token(tknAddress);
-const token1 = wallet1.Token(tknAddress);
-it("Token is Working", async () => {
-  balance = await token.balance;
-  
-})
-
-it("token metadata",async () => {
-  const metadata = await token.metadata;
-  console.log(metadata);
-  expect(metadata).toBeDefined;
-})
-
-it("send token", async () => {
-  const transaction = await token.send("0", "0x7C1650D9a62f51c8420A91aF4D939b7568909a07");
-  console.log(transaction);
-  expect(transaction).toBeDefined();
-})
-
-// reject because address is not valid
-it("send token reject because address is not valid", async () => {
-  token.send("0.0001","address1").catch(err => {
-    console.log(err);
-    expect(err.msg).toBe("Address Provided is not valid.")}
-    )
-})
-
-it("send token reject because dont  have any balance", async () => {
-    token1.send("100001",address1).catch((rrr) => { console.log(rrr)
-  expect(rrr.msg).toBe("Not enough balance to contineu this transaction")})
-})
-// gas
-it("estimateGas token", async () => {
-  const gas = await token.estimateGas("0.000000000001", address1);
-  console.log(gas);
-  expect(gas).toBeDefined();
-})
+describe("Estimate Gas", async () => {
+   const provider = new Wallet.Provider();
+   const wallet0 = new ethers.Wallet("0x20f6b3e0228e35d7d75188259a3b468bf4c006602b8c3d2fdd3408409dd52052",provider);
+   const wallet1 = new ethers.Wallet("0x75d65b3f43b5a97104270f05d61fb18c767169848d82d59d5e320e47e3f69738",provider);
+   const wallet = new Wallet(wallet0,provider);
+   it('Estimate Gas using generic types',async () => {
+      const gasFee = await wallet.estimateGas("00001",wallet1.address);
+      expect(gasFee).toBeDefined();
+   })
 })

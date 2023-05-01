@@ -1,43 +1,41 @@
 import {ethers} from "ethers";
 import Transaction from "./Transaction";
-export class TokenStaticGasFormat {
-    estimatedGasInEther:string;
-    estimatedGasInWei:string;
-    toSpend:string;
+import Format from "./Format";
+import GasFormat from "./GasFormat"
+import { ITransactionConfig, BigNumberish } from "./types";
+
+
+
+export class TokenStaticGasFormat extends GasFormat.Static {
     toSpendEtherFormat:string;
-    transactionInfo:any;
     totalToken:string;
     totalTokenWei:string;
-    totalEthers:string;
-    totalWei:string;
-    #estimatedGas:any;
+    _estimatedGas:any;
 
     
-    constructor(tx:any,estimatedGas:any,dec:any){
-      this.#estimatedGas = estimatedGas;
-      this.estimatedGasInEther= ethers.utils.formatUnits(this.estimatedGas.toString(),dec).toString();
-      this.estimatedGasInWei = ethers.utils.parseUnits(this.estimatedGasInEther,dec).toString()
-      this.toSpend = tx.value.toString();
-      this.toSpendEtherFormat = ethers.utils.formatUnits(this.toSpend,dec).toString();
-      this.transactionInfo = tx ;
-      this.totalToken = ethers.utils.formatUnits(this.toSpend,dec).toString(),
-      this.totalTokenWei = ethers.utils.parseUnits(ethers.utils.formatUnits(this.toSpend,dec).toString()).toString();
-      this.totalEthers = ethers.utils.formatEther(this.estimatedGas.toString()).toString();
-      this.totalWei = ethers.utils.parseEther(ethers.utils.formatEther(this.estimatedGas.toString()).toString()).toString()
+    constructor(tx:ITransactionConfig,estimatedGas:BigNumberish,decimals:number){
+      super(tx,estimatedGas,decimals);
+      this.toSpendEtherFormat = ethers.utils.formatUnits(this.toSpend,decimals).toString();
+      this.totalToken = ethers.utils.formatUnits(this.toSpend,decimals).toString(),
+      this.totalTokenWei = ethers.utils.parseUnits(ethers.utils.formatUnits(this.toSpend,decimals).toString()).toString();
       
     }
+    
     get total() {
-        return `${this.estimatedGas.toString()} ${this.toSpend}`;
+        return `${this._estimatedGas.toString()} ${this.toSpend}`;
       }
+      
     get estimatedGas() {
-      return this.#estimatedGas ;
+      return this._estimatedGas ;
     }
   }
   
 export class TokenGasFormat extends TokenStaticGasFormat {
   #methods:any;
+  _estimatedGas:string;
   constructor(tx:any,contract:any,estimatedGas:any,dec:any){
     super(tx,estimatedGas,dec);
+    this._estimatedGas = estimatedGas;
      this.#methods =  contract ;
   }
   send(){
@@ -49,7 +47,7 @@ export class TokenGasFormat extends TokenStaticGasFormat {
       if(gas){
           return new Promise((resolves,rejects) => {
             methods.transfer(transactionInfo.to,transactionInfo?.value, {gasLimit : `${gasLimit}`}).then(function(res:any) { 
-              res.Transaction = new Transaction(transactionInfo.value,18);
+              res.Transaction = new Transaction(transactionInfo.value,18,methods.address,transactionInfo.to);
               resolves(res)})
             .catch(function(err:any){rejects(err)})
           })
@@ -57,7 +55,7 @@ export class TokenGasFormat extends TokenStaticGasFormat {
       return new Promise((resolves,rejects) => {
         const tx = transactionInfo;
       methods.transfer(tx.to,tx.value).then(function(res:any) { 
-        res.Transaction = new Transaction(tx.value,18);
+        res.Transaction = new Transaction(tx.value,18,methods.address, tx.to);
         resolves(res)})
       .catch(function(err:any){ rejects(err)})
     })

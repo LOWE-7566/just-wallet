@@ -94,7 +94,7 @@ export class FromSignerWallet {
             result.Transaction = new Transaction(tx.value,18);
             resolve(result);
          })
-         .catch((err:acny) => reject(err))
+         .catch((err:any) => reject(err))
       })
    } 
    

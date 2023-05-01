@@ -1,8 +1,10 @@
+
 interface isValidAddressInterface {
   valid:boolean;
   value:string;
   address?:string;
 }
+
 function isValidAddress(address:string):isValidAddressInterface{
   const addressRegExp:RegExp = /^0x[a-fA-F0-9]{40}$/g;
   const match = address.trim().match(addressRegExp);

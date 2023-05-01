@@ -1,12 +1,13 @@
 import {ethers} from "ethers";
 import Wallet from "./Wallet.js"
 import ContractDeployer from "./ContractDeployer.js";
+import { type ContractInterface, } from "ethers";
+import { type Provider, type Signer} from "./types";
 const EthContract = ethers.Contract;
-
 class Contract {
   #contract:any;
   interface:any;
-  signer:Wallet;
+  signer:Signer|undefined;
   callStatic:any;
   estimateGas:any;
   functions:any;
@@ -17,7 +18,7 @@ class Contract {
   address:any;
   resolvedAddress:any;
   call:any;
-  constructor(address:string,abi:string|Object,signer:any){
+  constructor(address:string,abi:ContractInterface|string,signer:Signer|undefined){
     const contract = new EthContract(address,abi,signer);
     this.#contract = contract;
     const Keys:any[]  = Object.keys(contract);
@@ -38,11 +39,11 @@ class Contract {
     this._wrappedEmits = contract._wrappedEmits;
     this.address = contract.address;
     this.resolvedAddress = contract.resolvedAddress;
-    const keys:typeof contract.functions  = Object.keys(contract.functions);
+    const keys = Object.keys(contract.functions);
     this.call = {};
     for(var i = 0; i <  keys.length; i++){
       const functions = contract.functions;
-      const key:typeof keys  = keys[i];
+      const key: typeof keys[0]  = keys[i];
       this.call[key] = contract[key];
     }
   }

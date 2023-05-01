@@ -127,13 +127,14 @@ class ERCTokenManeger {
             return;
          }
          this.#contract.transfer(to,amount,config).then((c:any) => {
-            const Transaction:any = new TransactionLogger(amount,decimals);
+            const Transaction:any = new TransactionLogger(amount,decimals,this.#contract.address,to);
             resolve({...c, Transaction : Transaction});
          }).catch((err:any) => reject(err))
          
       })
       
    }
+   
    
    // estimateGas:promise
    async estimateGas (amount:string|number,to:string){
@@ -151,7 +152,7 @@ class ERCTokenManeger {
          }
          this.#contract.estimateGas.transfer(tx.to,tx.value)
          .then((res:any) => {
-            resolve(new GasFormat.Static(tx,res,decimals));
+            resolve(new GasFormat.Static(tx,res,parseInt(decimals)));
          })
       });
    }
