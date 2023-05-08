@@ -3,8 +3,10 @@ import Format from "./Format.js";
 import TransactionLogger from "./Transaction.js";
 import GasFormat from "./TokenGasFormat.js";
 import addressValidator from "./checkAddress";
+import {IFormat, Walletish,ITransactionConfig,WalletTransactionalNumber, Signer} from "./types";
+import { ArgurmentError, ExecutionError } from "./utils/Error";
 
-interface Methods{
+export interface Methods{
    allowance:any;
    approve: any;
    balanceOf: any;
@@ -15,8 +17,6 @@ interface Methods{
    getMetadata : any;
    address:string;
 }
-
-
 const abi = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]` 
 interface ERCTokenManegerConfig {
    provider:any;
@@ -34,8 +34,13 @@ class ERCTokenManeger {
    
    
    constructor(walletOrProvider:any,address:string){
+      const adr = address;
+      if(!address || !addressValidator(adr).valid ){
+         throw new ArgurmentError("FETHWallet.Token.constructor",undefined, "address" ,address,"A valid ethers address.", "Providing a valid address.");
+      }
+      
       this.#walletOrProvider = walletOrProvider.Wallet || walletOrProvider;
-      this.#contract = new ethers.Contract(address,abi, this.#walletOrProvider);
+      this.#contract = new ethers.Contract(adr,abi, this.#walletOrProvider);
       this.defaultMethods = {
          address : this.#contract.address,
          allowance: this.#contract.allowance,
@@ -90,14 +95,15 @@ class ERCTokenManeger {
    
    
    // switchSigner
-    useAs(walletOrProvider:any){
+   useAs(walletOrProvider:any){
       return new ERCTokenManeger(walletOrProvider,this.#contract.address);
    }
    
    
    // switch address 
-   useAddress(address:string){
-      return new ERCTokenManeger(this.#walletOrProvider,address);
+   useAddress(address:Walletish){
+      const adr = address.address || address.toString()
+      return new ERCTokenManeger(this.#walletOrProvider,adr);
    }
    
    // approve
@@ -106,30 +112,41 @@ class ERCTokenManeger {
    }
    
    // send tokens :Promise
-   async send(amount:string|number,to:string,config:any){
+   async send(amount:WalletTransactionalNumber,to:Walletish,config:ITransactionConfig){
       const decimals = await this.#contract.decimals();
       const factory = Format.Factory(parseInt(decimals));
-      var tx:Object = {};
-      amount = factory(amount);
+      var tx:ITransactionConfig = {value: "", to: ""}
+      tx.to = to.address ? to.address.toString() : to.toString();
+      tx.value = amount.wei || amount._isBigNumber ? amount.toString() : factory(amount);
       return new  Promise(async (resolve,reject) => {
          const balance:any = await this.balance;
-         const tokenAmount = factory(amount);
-         const enoughBalance = balance.wei >= tokenAmount.toString();
-         const isValidAddress = addressValidator(to);
+         const enoughBalance = balance.wei >= tx.to.toString();
+         const isValidAddress = addressValidator(tx.to);
          if(!isValidAddress.valid){
-            reject({msg : "Address Provided is not valid.", data : isValidAddress});
+            throw new ArgurmentError("FETHWallet.Token.send",isValidAddress, "to", tx.to,"A ethers Wallet, Mnemonic Wallet, PrivateKey, an new ethers.Wallet or new FETHWallet", "Providing A Valid Ptovider");
             return;
          }
          // if account has enough balance 
          if(!enoughBalance){
             // if transaction exeeds balance
-            reject({msg: "Not enough balance to contineu this transaction", transaction : tx, balance  : balance});
-            return;
+            throw new ExecutionError("FETHWallet.Token.send",{balance : balance.wei, error: `not enough balance`, amount : tx.value }, "Send tokens that is lesser or equal to your tken balance ")
+            
          }
-         this.#contract.transfer(to,amount,config).then((c:any) => {
-            const Transaction:any = new TransactionLogger(amount,decimals,this.#contract.address,to);
-            resolve({...c, Transaction : Transaction});
-         }).catch((err:any) => reject(err))
+         this.#contract.transfer(tx.to,tx.value,{...config}).then(async (result:any) => {
+            try {
+               
+               const Transaction:any = new TransactionLogger(tx.value,decimals,this.#walletOrProvider.address,tx.to);
+               const wait = await result.wait();
+               wait.Transaction = Transaction;
+               resolve(wait);
+            } catch(err:any){
+               const error =  new ExecutionError("FETHWallet.send", {...err}, "Send tokens that is lesser or equal to your tken balance ")
+               reject(error);
+            }
+         }).catch((err:any) => {
+            const error =  new ExecutionError("FETHWallet.send", {...err}, "Send tokens that is lesser or equal to your tken balance ")
+            reject(error);
+         })
          
       })
       
@@ -137,26 +154,30 @@ class ERCTokenManeger {
    
    
    // estimateGas:promise
-   async estimateGas (amount:string|number,to:string){
+   async estimateGas (amount:WalletTransactionalNumber,to:Walletish){
       const decimals:string = await this.#contract.decimals();
       const factory = Format.Factory(parseInt(decimals));
-      const isValidAddress = addressValidator(to);
-      const tx:any = {
-         to : to,
-         value : factory(amount)
-      }
+      const tx:any = {}
+      tx.to = to.address || to;
+      tx.value = amount.wei || amount._isBigNumber ? amount.toString() : factory(amount); 
+      
+      
+      const isValidAddress = addressValidator(tx.to);
       return new Promise((resolve,reject) => {
          if(!isValidAddress.valid){
-            reject({msg : "Address Provided is not valid", data : isValidAddress});
+            throw new ArgurmentError("FETHWallet.Token.estimateGas",isValidAddress, "to", tx.to,"A ethers Wallet, Mnemonic Wallet, PrivateKey, an new ethers.Wallet or new FETHWallet", "Providing A Valid Ptovider");
             return;
          }
+         
          this.#contract.estimateGas.transfer(tx.to,tx.value)
          .then((res:any) => {
-            resolve(new GasFormat.Static(tx,res,parseInt(decimals)));
+            resolve(new GasFormat(tx,res,parseInt(decimals)));
+         }).catch((err:any) => {
+            const error =  new ExecutionError("FETHWallet.estimateGas", {...err}, "Send tokens that is lesser or equal to your tken balance ")
+            reject(error);
          })
       });
    }
-   
    
 }
 

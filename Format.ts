@@ -6,11 +6,11 @@ const BigNumber = ethers.BigNumber;
 
 
 /**
- * * * you can separate the number string by hipen ex. 100-000 for 100000 
+ * * * you can separate the number string by hipen ex. 100-000 for 100000  or comma 
  * * **/
  
  
- class Format {
+ class Format implements IFormat{
     _isFormat:boolean;
     inputValue:string|number; // value provided
     wei:string; // wei the smallest value
@@ -21,7 +21,7 @@ const BigNumber = ethers.BigNumber;
     moneyValueSeparated:string;
     assetValue:string;
     decimals:number;
-    constructor(str:string,decimals:number){
+    constructor(str:string,decimals?:number){
        const value:string = str.replaceAll(/-|,/g,"");
        this._isFormat = true;
        this.decimals = decimals ? decimals : 18 ;
@@ -36,7 +36,7 @@ const BigNumber = ethers.BigNumber;
        if(maxSplited.length > 1){
           const dec =  trim(maxSplited[1],9);
           const moneyDec = dec || "00";
-          this.walletReady = `${whole}.${dec}`;
+          this.walletReady = `${whole}.${moneyDec}`;
           this.moneyValue = `${whole}.${trim(trim(moneyDec,2))}`;
           const biglocale = BigInt(whole).toLocaleString();
           this.separated = `${biglocale}${dec ? "." + trim(dec) : ""}`;
@@ -68,8 +68,9 @@ const BigNumber = ethers.BigNumber;
     
     static get  Wei(){
        class FormatWie extends Format {
-          constructor(value:string,dec:number){
-             const parsedValue:string = value.replaceAll(/-|,/g,"");
+          constructor(value:string,_decimals?:number){
+             const dec = _decimals || 18;
+             const parsedValue:string = value.toString().replaceAll(/-|,/g,"");
              const wei:string =   utils.formatUnits(parsedValue,dec);
              super(wei,dec);
              this.inputValue = value;

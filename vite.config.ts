@@ -2,7 +2,7 @@ import { defineConfig,configDefaults } from 'vitest/config'
 
 export default defineConfig({
   test: {
-    testTimeout : "50000",
+    testTimeout : 35000,
     exclude : [ ...configDefaults.exclude],
     coverage: {
       provider: 'c8'

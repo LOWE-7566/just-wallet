@@ -5,20 +5,26 @@ import {abi, bin} from "./tokenBin";
 
 const provider = new Wallet.Provider();
 
-const wallet0 = new ethers.Wallet("0x20f6b3e0228e35d7d75188259a3b468bf4c006602b8c3d2fdd3408409dd52052",provider);
-const wallet1 = new ethers.Wallet("0x75d65b3f43b5a97104270f05d61fb18c767169848d82d59d5e320e47e3f69738",provider);
-const wallet = new Wallet(wallet0,provider);
 
-describe("Test Wallet", async () => {
+const wallet0 = new ethers.Wallet("0x23d3891b74448485485c2a53965ab8b148d167e0a42bcc7f9ca65d0361b63239",provider);
+const wallet1 = new ethers.Wallet("0x75d65b3f43b5a97104270f05d61fb18c767169848d82d59d5e320e47e3f69738",provider);
+const getWallet =  async ():Promise<any> => {
+   const signer = await provider.getSigner();
+   const wallet = new Wallet.FromSigner(signer);
+   return wallet;
+
+}
+describe("Test Wallet From Signer", async () => {
    
+   const wallet = await getWallet();
    it("Wallet Metadatadata", async () => {
-      expect(wallet.address).toBe("0xCca5969eF9abE5F281763D547b1255278E72b980");
-      expect(wallet.address.length).toBe(42);
-      expect(wallet.privateKey).toBe("0x20f6b3e0228e35d7d75188259a3b468bf4c006602b8c3d2fdd3408409dd52052");
-      expect(wallet.privateKey.length).toBe(66);
+      expect(await wallet.address).toBe("0x27660DC47F6046286A45f6F2462a08c55f96566E")
+      expect( wallet.privateKey).toBeUndefined();
+      
    })
    
    it("Test Wallet UseAs and useAt", () => {
+      
       const walletOriginal = new Wallet(wallet0, provider);
       // new Wallet 
       const newWallet = walletOriginal.useAs(wallet1)
@@ -46,8 +52,8 @@ describe("Test Wallet", async () => {
 
 
 describe("Real Transaction  of Wallet", async () => {
-   const provider = new Wallet.Provider();
    const amountFormat = new Wallet.Format("0.000-000-0001");
+   const wallet = await getWallet();
    it("Send Ether with generic types ", async () => {
       const transaction =  await wallet.send("0.000-000-0001",wallet1.address);
      expect(transaction.Transaction.amount).toBe(amountFormat.wei);
@@ -71,7 +77,7 @@ describe("Real Transaction  of Wallet", async () => {
 })
 
 describe("Estimate Gas", async () => {
-   const provider = new Wallet.Provider();
+   const wallet = await getWallet();
    
    it('Estimate Gas using generic types',async () => {
       const gasFee = await wallet.estimateGas("0.0001",wallet1.address);
@@ -107,7 +113,8 @@ describe("Estimate Gas", async () => {
 
 
 describe("Transfer Token", async () => {
-   const tokenFactory = new ethers.ContractFactory(abi,bin,wallet0);
+   const wallet = await getWallet();
+   const tokenFactory = new ethers.ContractFactory(abi,bin,wallet.signer);
    const _token = await tokenFactory.deploy();
    const token = wallet.Token(_token);
    

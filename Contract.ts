@@ -18,7 +18,7 @@ class Contract {
   address:any;
   resolvedAddress:any;
   call:any;
-  constructor(address:string,abi:ContractInterface|string,signer:Signer|undefined){
+  constructor(address:string,abi:ContractInterface|string,signer:any){
     const contract = new EthContract(address,abi,signer);
     this.#contract = contract;
     const Keys:any[]  = Object.keys(contract);

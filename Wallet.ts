@@ -7,11 +7,16 @@ import Contract from "./Contract.js";
 import FromSigner from "./fromSigner";
 import addressValidator from "./checkAddress";
 import TokenWallet  from "./Token";
-import { WalletTransactionalNumber, TypeWallet,Walletish,Providerish, EthersWallet,Wallet, Provider, ITransactionConfig} from "./types";
+import { WalletTransactionalNumber,Walletish,Providerish, EthersWallet,Wallet,IFormat,Provider, ITransactionConfig, Address} from "./types";
+import send from "./Send";
+import estimateGas from "./EstimateGas"
+import BN from "./utils/BN";
 const abi = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]`
+import { ArgurmentError } from "./utils/Error";
 
-
-
+const utils = {
+   BN
+}
 const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
 export class FETHWallet {
    mnemonic:any;
@@ -22,6 +27,15 @@ export class FETHWallet {
    
    
    constructor(wallet:Walletish, provider:Providerish){
+      
+      if(!wallet){
+         throw new ArgurmentError("FETHWallet.constructor",undefined, "wallet", wallet,"A ethers Wallet, Mnemonic Wallet, PrivateKey, an new ethers.prototype.Wallet or new FETHWallet", "Providing A Valid Ptovider");
+      } 
+      
+      if(!provider){
+         throw new ArgurmentError("FETHWallet.constructor",undefined, "provider", this.#providerInput,"A ethers provider or FETHWallet.prototype.Provider.", "Providing A Valid Provider");
+      }
+      
       this.#providerInput = provider;
       this.#walletInput = wallet;
       this.decimals = 18 ;
@@ -31,9 +45,11 @@ export class FETHWallet {
    // provider 
    get provider(){
       let __provider:any;
-      if(typeof this.#providerInput === "string"){
+      if(!this.#providerInput){
+         throw new ArgurmentError("FETHWallet.constructor",undefined, "provider", this.#providerInput,"A ethers provider or FETHWallet.prototype.Provider.", "Providing A Valid Provider");
+      } else if(typeof this.#providerInput === "string"){
          __provider = new FETHProvider(this.#providerInput || `http://localhost:8545`);
-      } else if(this.#providerInput?._isProvider){
+      } else if(this.#providerInput._isProvider){
          __provider = this.#providerInput;
       } else {
          __provider = new FETHProvider(`http://localhost:8545`);
@@ -46,7 +62,7 @@ export class FETHWallet {
    get Wallet(){
       let __wallet;
       if(this.#walletInput === undefined){
-         throw new Error("Wallet is Emty");
+         throw new ArgurmentError("FETHWallet.constructor",undefined, "wallet", this.#walletInput,"A ethers Wallet, Mnemonic Wallet, PrivateKey, an new ethers.prototype.Wallet or new FETHWallet", "Providing A Valid Ptovider");
       }
       
       const walletLength = 66 ;
@@ -81,7 +97,7 @@ export class FETHWallet {
    
    
    // getter for address
-   get address(){
+   get address():Address{
       return  this.Wallet.address ;
    }
    
@@ -90,7 +106,7 @@ export class FETHWallet {
       return this.Wallet.privateKey;
    }
    
-   get balance():Promise<Format>{
+   get balance():Promise<IFormat>{
       
       return new Promise((resolve,reject) => {
          this.provider.getBalance(this.address).then((bal:any) => {
@@ -122,79 +138,20 @@ export class FETHWallet {
    // send 
    // @params amount is an ethers string or an object used to send ethers 
    async send(amount:WalletTransactionalNumber,to:Walletish,config?:string|ITransactionConfig){
-      
-      const wallet = this.Wallet;
-      if(!to || !amount){
-         throw new Error("Wallet: Address or Amount is undefined")
-      }
-      return new Promise(async (resolve,reject) => {
-         // check balance 
-         const balance:any = await this.balance;
-         const factory = Format.Factory(this.decimals);
-         const tokenAmount = factory(amount);
-         const enoughBalance = BigInt(balance.wei) >= BigInt(tokenAmount);
-         const isValidAddress = addressValidator(to.address||to);
-         const address = this.address;
-         var tx:ITransactionConfig = {}
-         
-         if(typeof config === "string"){
-            tx.gasLimit = config ;
-         }
-         
-         if(typeof config === "object"){
-            tx = {...tx, ...config};
-         }
-         
-         tx.to = to.address || to;
-         tx.value = amount.wei ||  factory(amount.toString());
-         // check if address provided is valid;
-         if(!isValidAddress.valid){
-            reject({msg : "Address Provided is not valid", data : isValidAddress});
-            return;
-         } 
-         // if account has enough balance 
-         if(!enoughBalance){
-            // if transaction exeeds balance
-            reject({msg: "Not enough balance to contineu this transaction", transaction : tx, balance  : balance});
-            return;
-         }
-         
-         //sending transaction.... promise
-         wallet.sendTransaction(tx)
-         .then(async (result:any) => {
-            const wait = await result.wait()
-            wait.Transaction = new Transaction(tx.value,18,address,tx.to);
-            resolve(wait);
-         }).catch((err:any) => reject(err))
-      })
+      return send(amount,to,this,config);
    } 
    
    
    // estimate gas... 
-   estimateGas (amount:ITransactionConfig,to:Walletish){
-      const factory = Format.Factory(this.decimals);
-      const tx:ITransactionConfig = {};
-      
-      tx.to = to.address || to;
-      tx.value = amount.wei ||  factory(amount.toString());
-      return new Promise((resolve,reject) => {
-         const isValidAddress = addressValidator(to);
-         // if Address Provided is not valid 
-         if(!isValidAddress){
-            reject({msg : "Address Provided is not valid", data : isValidAddress});
-            return;
-         } 
-         this.Wallet.estimateGas(tx).then((res:any) => {
-            resolve(new GasFormat.Static(tx,res))
-         })
-         
-      })
+   estimateGas (amount:WalletTransactionalNumber,to:Walletish){
+      return estimateGas(amount,to,this);
    }
    
    
    // using the ERC20 Wallet
-   Token(addr:string){
-      return new TokenWallet(this.Wallet,addr);
+   Token(addr:Contract){
+      const address = addr.address || addr
+      return new TokenWallet(this.Wallet,address);
    }
    
    
@@ -219,6 +176,9 @@ export class FETHWallet {
    get ethers(){
       return ethers;
    } 
+   static get utils(){
+      return utils;
+   }
 }
 
 /*Documentation 
