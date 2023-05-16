@@ -2,8 +2,19 @@
   "name": "ethers-wallet-js",
   "version": "0.0.1",
   "description": "ERC Wallet framework for Eth",
-  "main": "./dist/require.js",
-  "module": "./es6/Wallet.js",
+  "main": "./dist/index.js",
+  "module": "./es6/index.js",
+  "exports" : {
+     "." : {
+        "require" : "./dist/index.js",
+        "import" : "./es6/index.js"
+     },
+     "./types" : {
+        "require" : "./dist/types.js",
+        "import" : "./es6/types.js"
+     }
+     
+  },
   "scripts": {
     "compile": "tsc --watch",
     "build": "tsc -p tsconfig.json && tsc -p  es6tsconfig.json",
