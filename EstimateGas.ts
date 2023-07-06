@@ -1,8 +1,8 @@
 import { WalletTransactionalNumber,Walletish,ITransactionConfig } from "./types";
-import addressValidator from "./checkAddress";
-import GasFormat from "./GasFormat";
-import Format from "./Format";
-import { ArgurmentError, ExecutionError } from "./utils/Error";
+import addressValidator from "./checkAddress.js";
+import GasFormat from "./GasFormat.js";
+import Format from "./Format.js";
+import { ArgurmentError, ExecutionError } from "./utils/Error.js";
 
 async function estimateGas (amount:WalletTransactionalNumber,to:Walletish,data:any){
    const factory = Format.Factory(data.decimals);

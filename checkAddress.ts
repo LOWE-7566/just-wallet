@@ -1,5 +1,6 @@
 import { isValidAddressInterface } from "./types"
-import { ArgurmentError, ExecutionError } from "./utils/Error";
+import { ArgurmentError, ExecutionError } from "./utils/Error.js";
+
 function isValidAddress(address:string):isValidAddressInterface{
    if(typeof address !== 'string'){
       console.log(address);

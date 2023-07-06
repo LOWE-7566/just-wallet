@@ -4,16 +4,15 @@
   "description": "ERC Wallet framework for Eth",
   "main": "./dist/index.js",
   "module": "./es6/index.js",
-  "exports" : {
-     "." : {
-        "require" : "./dist/index.js",
-        "import" : "./es6/index.js"
-     },
-     "./types" : {
-        "require" : "./dist/types.js",
-        "import" : "./es6/types.js"
-     }
-     
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./es6/index.js"
+    },
+    "./types": {
+      "require": "./dist/types.js",
+      "import": "./es6/types.js"
+    }
   },
   "scripts": {
     "compile": "tsc --watch",
