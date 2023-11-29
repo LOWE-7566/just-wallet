@@ -1,9 +1,16 @@
-import { WalletTransactionalNumber,Walletish,ITransactionConfig } from "./types";
+import { WalletTransactionalNumber,Walletish,ITransactionConfig, IWalletish } from "./types";
 import Transaction from "./Transaction";
 import Format from "./Format";
 import addressValidator from "./checkAddress";
 import { ArgurmentError, ExecutionError } from "./utils/Error";
-async function send(amount:WalletTransactionalNumber,to:Walletish,data:any,config?:string|ITransactionConfig){
+import { BigNumber, Transaction as ETHtransaction} from "ethers";
+import ToSendAndRecipient from "./utils/ToSendAndRecipient";
+
+interface SendTransaction extends ETHtransaction{
+   Transaction : Transaction
+}
+
+async function send(amount:WalletTransactionalNumber,to:Walletish,data:any,config?:string|ITransactionConfig):Promise<SendTransaction>{
    
    const wallet = data.Wallet || data.signer;
    if(!to){
@@ -18,7 +25,8 @@ async function send(amount:WalletTransactionalNumber,to:Walletish,data:any,confi
       const factory = Format.Factory(data.decimals);
       const tokenAmount = factory(amount);
       const enoughBalance = BigInt(balance.wei) >= BigInt(tokenAmount);
-      const isValidAddress = addressValidator(to.address||to.toString());
+      const { recipient, amountToSend } = ToSendAndRecipient(amount,to);
+      const isValidAddress = addressValidator(recipient);
       const address = data.address;
       var tx:ITransactionConfig = {value : "", to : ""}
       
@@ -30,8 +38,8 @@ async function send(amount:WalletTransactionalNumber,to:Walletish,data:any,confi
          tx = {...tx, ...config};
       }
       
-      tx.to = to.address ? to.address.toString() : to.toString();
-      tx.value = amount.wei || amount._isBigNumber ? amount.toString() : factory(amount);
+      tx.to = recipient;
+      tx.value = amountToSend; 
       // check if address provided is valid;
       if(!isValidAddress.valid){
          throw new ArgurmentError("FETHWallet.send",isValidAddress, "to", tx.to,"A ethers Wallet, Mnemonic Wallet, PrivateKey, an new ethers.Wallet or new FETHWallet", "Providing A Valid Ptovider");

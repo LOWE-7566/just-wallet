@@ -3,8 +3,8 @@ import Wallet from "./Wallet"
 const JsonRpcProvider = ethers.providers.JsonRpcProvider;
 const Web3Provider = ethers.providers.Web3Provider;
 class Provider extends JsonRpcProvider {
-  constructor(provider:string){
-    super(provider);
+  constructor(provider?:string){
+    super(provider || "http://127.0.0.1:8545");
   }
   get isReady(){
     return new Promise<boolean>(async (resolve, reject) => {

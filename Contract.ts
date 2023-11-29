@@ -2,7 +2,7 @@ import {ethers} from "ethers";
 import Wallet from "./Wallet.js"
 import ContractDeployer from "./ContractDeployer.js";
 import { type ContractInterface, } from "ethers";
-import { type Provider, type Signer} from "./types";
+import { type Provider, type Signer } from "./types";
 const EthContract = ethers.Contract;
 class Contract {
   #contract:any;

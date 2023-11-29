@@ -97,7 +97,7 @@ export class FETHWallet {
    
    
    // getter for address
-   get address():Address{
+   get address():string{
       return  this.Wallet.address ;
    }
    
@@ -149,7 +149,7 @@ export class FETHWallet {
    
    
    // using the ERC20 Wallet
-   Token(addr:Contract){
+   Token(addr:Contract|ethers.Contract){
       const address = addr.address || addr
       return new TokenWallet(this.Wallet,address);
    }

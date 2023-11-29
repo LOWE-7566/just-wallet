@@ -3,13 +3,15 @@ import addressValidator from "./checkAddress.js";
 import GasFormat from "./GasFormat.js";
 import Format from "./Format.js";
 import { ArgurmentError, ExecutionError } from "./utils/Error.js";
+import ToSendAndRecipient from "./utils/ToSendAndRecipient";
 
-async function estimateGas (amount:WalletTransactionalNumber,to:Walletish,data:any){
+async function estimateGas (amount:WalletTransactionalNumber,to:Walletish,data:any):Promise<GasFormat>{
    const factory = Format.Factory(data.decimals);
-   let tx:ITransactionConfig = {to:"",value:""};
+   let tx: ITransactionConfig = { to: "", value: "" };
+   const { recipient, amountToSend } = ToSendAndRecipient(amount, to);
    
-   tx.to = to.address ? to.address.toString() : to.toString();
-   tx.value = amount.wei || amount._isBigNumber ? amount.toString() : factory(amount);
+   tx.to = recipient;
+   tx.value = amountToSend;
    const Wallet = data.Wallet || data.signer;
    return new Promise((resolve,reject) => {
       const isValidAddress = addressValidator(tx.to);

@@ -6,11 +6,11 @@ const BigNumber = ethers.BigNumber;
 
 
 /**
- * * * you can separate the number string by hipen ex. 100-000 for 100000  or comma 
+ * * * you can separate the number string by hipen ex. 100-000 or 100,000 for 100000  
  * * **/
  
  
- class Format implements IFormat{
+ class Format implements IFormat {
     _isFormat:boolean;
     inputValue:string|number; // value provided
     wei:string; // wei the smallest value
@@ -21,7 +21,7 @@ const BigNumber = ethers.BigNumber;
     moneyValueSeparated:string;
     assetValue:string;
     decimals:number;
-    constructor(str:string,decimals?:number){
+    constructor(str: string, decimals?: number) {
        const value:string = str.replaceAll(/-|,/g,"");
        this._isFormat = true;
        this.decimals = decimals ? decimals : 18 ;
@@ -106,19 +106,17 @@ const BigNumber = ethers.BigNumber;
        
     }
     
-    // gerters and setters
+    // set the value of the tokens
     set value(value:any){
        this.assetValue = value;
     }
     
+   //  calculate the value of the tokens
     get value(){
        const __value = new Format(this.assetValue,2);
        const wei = BigInt(this.wei);
        const __valueWei = BigInt(__value.wei);
        const totalValue = wei * __valueWei;
-       
-       
-       
        const totalValueFormatFixed = new Format.Wei(totalValue.toString(), this.decimals + 2).fixed;
        const totalValueFormat = new Format(totalValueFormatFixed,2)
        return totalValueFormat;
@@ -130,7 +128,10 @@ const BigNumber = ethers.BigNumber;
  
  
  
- export default Format;
+export default Format;
+ 
+
+
  
  // methods 
  // Format.operationSupport => turning Format.wei to ethers.BigNumber ;

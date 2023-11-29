@@ -1,4 +1,4 @@
-import { ethers, type BigNumberish as BN } from "ethers";
+import { ethers, type BigNumberish as BN, BigNumber } from "ethers";
 import Format from "./Format";
 import FETHWallet from "./Wallet";
 import FETHToken from "./Token.js";
@@ -9,8 +9,8 @@ import FETHProvider from "./Provider";
  
  
  const ETHProvider = ethers.providers.Provider
-export type WalletTransactionalNumber = IWalletTransactionalNumber;
-export type Walletish = IWalletish;
+export type WalletTransactionalNumber = string|BigNumber|BN|BigNumberish|BigInt|Format ;
+export type Walletish = IWalletish|Wallet|ethers.Wallet|string;
 export type AnyWallet = typeof ethers.Wallet|Wallet;
 type EthersProvider = typeof ETHProvider;
 export type Providerish = string| FETHProvider| EthersProvider;
@@ -23,12 +23,6 @@ export type Signer = Wallet|EthSigner|Provider;
 export type Contract = typeof ethers.Contract|FETHContract;
 
 export type Address = string|IWalletish;
-export interface IWalletTransactionalNumber extends String{
-   _isFormat?:boolean;
-   _isBigNumber?:boolean;
-   wei?:string;
-   
-}
 
 export interface ITransactionConfig {
    to:string;
@@ -58,7 +52,7 @@ export interface IFormat {
  }
 
 
-interface IWalletish  {
+export interface IWalletish  {
      address:string;
      privateKey:string;
      provider:Provider

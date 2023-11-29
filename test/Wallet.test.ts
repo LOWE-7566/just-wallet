@@ -1,20 +1,20 @@
 import { describe, it, expect} from "vitest";
-import  Wallet from "./Wallet";
+import  Wallet from "../Wallet";
 import { ethers } from "ethers";
 import {abi, bin} from "./tokenBin";
 
-const provider = new Wallet.Provider();
+const provider = new Wallet.Provider("http://127.0.0.1:8545");
 
-const wallet0 = new ethers.Wallet("0x20f6b3e0228e35d7d75188259a3b468bf4c006602b8c3d2fdd3408409dd52052",provider);
-const wallet1 = new ethers.Wallet("0x75d65b3f43b5a97104270f05d61fb18c767169848d82d59d5e320e47e3f69738",provider);
+const wallet0 = new ethers.Wallet("0x4694ced5709eb2202071ee6bbce0477507319b96c1e82b387b27b28ebc765666",provider);
+const wallet1 = new ethers.Wallet("0xf8cd5984daf93e18847b7cd636277c0f200e9b60c4081e680e0cd52572cba9ba",provider);
 const wallet = new Wallet(wallet0,provider);
 
 describe("Test Wallet", async () => {
    
    it("Wallet Metadatadata", async () => {
-      expect(wallet.address).toBe("0xCca5969eF9abE5F281763D547b1255278E72b980");
+      expect(wallet.address).toBe("0x674cA9774d1e59B6c1BbE8AE6E3c3c4e15058c7F");
       expect(wallet.address.length).toBe(42);
-      expect(wallet.privateKey).toBe("0x20f6b3e0228e35d7d75188259a3b468bf4c006602b8c3d2fdd3408409dd52052");
+      expect(wallet.privateKey).toBe("0x4694ced5709eb2202071ee6bbce0477507319b96c1e82b387b27b28ebc765666");
       expect(wallet.privateKey.length).toBe(66);
    })
    
@@ -34,7 +34,7 @@ describe("Test Wallet", async () => {
       // make a copy of the original
       const original = wallet;
       // switch account
-      wallet.switchAccount("0x75d65b3f43b5a97104270f05d61fb18c767169848d82d59d5e320e47e3f69738");
+      wallet.switchAccount("0xf8cd5984daf93e18847b7cd636277c0f200e9b60c4081e680e0cd52572cba9ba");
       expect(wallet.address).toBe(wallet1.address);
       wallet.switchNetwork("http://localhost:8000");
       expect(wallet.provider.connection.url).toBe("http://localhost:8000");
@@ -52,14 +52,12 @@ describe("Real Transaction  of Wallet", async () => {
       const transaction =  await wallet.send("0.000-000-0001",wallet1.address);
      expect(transaction.Transaction.amount).toBe(amountFormat.wei);
      expect(transaction.Transaction.done).toBe(true);
-      console.log(transaction);
    })
    
    it("send Ether with complex types", async () => {
       const transaction = await wallet.send(new Wallet.Format("0.000-000-0001"),wallet1);
      expect(transaction.Transaction.amount).toBe(amountFormat.wei);
      expect(transaction.Transaction.done).toBe(true);
-      console.log(transaction);
    })
    
    it("send Ether using BigNumber", async () => {
@@ -80,7 +78,6 @@ describe("Estimate Gas", async () => {
       
       const total = Wallet.utils.BN(toSpend).add(estimatedGas).toString();
       expect(total).toBe(gasFee.totalWei);
-      console.log({gasFee})
    })
    
    it("test estimate gas using complex types", async () => {
@@ -90,7 +87,6 @@ describe("Estimate Gas", async () => {
       
       const total = Wallet.utils.BN(toSpend).add(estimatedGas).toString();
       expect(total).toBe(gasFee.totalWei);
-      console.log({gasFee})
    })
    
    it("test estimate gas using BigNumber", async () => {
@@ -100,7 +96,6 @@ describe("Estimate Gas", async () => {
       
       const total = Wallet.utils.BN(toSpend).add(estimatedGas).toString();
       expect(total).toBe(gasFee.totalWei);
-      console.log({gasFee})
    })
    
 })
@@ -120,7 +115,6 @@ describe("Transfer Token", async () => {
       expect(transferToken.Transaction.amount).toBe(amountFormat.wei);
       // expect transaction value is 0.0000000001
       expect(transferToken.Transaction.done).toBe(true);
-      console.log({transferToken});
    })
    // uaing complex type
    it("send token using complex types", async () => {
@@ -130,7 +124,6 @@ describe("Transfer Token", async () => {
       expect(transferToken.Transaction.amount).toBe(amountFormat.wei);
       // expect transaction value is 0.0000000001
       expect(transferToken.Transaction.done).toBe(true);
-      console.log({transferToken});
    })
    // using BigNumber
    it("send token using complex types with BigNumber", async () => {
@@ -140,17 +133,14 @@ describe("Transfer Token", async () => {
       expect(transferToken.Transaction.amount).toBe(amountFormat.wei);
       // expect transaction value is 0.0000000001
       expect(transferToken.Transaction.done).toBe(true);
-      console.log({transferToken});
    })
    
    it('Estimate Token Gas using generic types',async () => {
       const gasFee = await token.estimateGas("0.0001",wallet1.address);
       const estimatedGas =  gasFee.estimatedGas;
       const toSpend = gasFee.toSpend;
-      
       const total = Wallet.utils.BN(toSpend).add(estimatedGas).toString();
       expect(total).toBe(gasFee.totalWei);
-      console.log({gasFee})
    })
    
 });

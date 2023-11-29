@@ -1,20 +1,19 @@
 import {ethers} from "ethers";
-import Transaction from "./Transaction.js";
 import Format from "./Format";
-import { ITransactionConfig, BigNumberish } from "./types" ;
+import { ITransactionConfig } from "./types";
+import { BigNumberish } from "ethers";
 const BigNumber:any = ethers.BigNumber;
 
 
-  export class GasFormat extends Format.Wei{
-     
-    _estimatedGas:any;
+  // a simplified gas report upon sendng ethers
+export class GasFormat extends Format.Wei{
+    _estimatedGas:number|BigNumberish|BigInt;
     estimatedGasInEther:string;
     estimatedGasInWei:string;
     toSpend:string;
-    transactionInfo:any;
+    transactionInfo:ITransactionConfig;
     totalEthers:string;
     totalWei:string;
-    
     
   constructor(tx:ITransactionConfig,estimatedGas:BigNumberish,_decimals?:number){
      const decimals:number = _decimals ||18;
@@ -32,15 +31,12 @@ const BigNumber:any = ethers.BigNumber;
     get total(){
       return BigNumber.from(this.estimatedGas).add(this.toSpend).toString();
     }
-    get estimatedGas(){
-      return this._estimatedGas ;
+    get estimatedGas():BigNumberish{
+      return BigInt(this._estimatedGas.toString()) ;
     }
   
     
   }
-  
-  
-
   
 
 

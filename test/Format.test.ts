@@ -12,7 +12,6 @@ describe("Test Format if it gives the right data", () => {
    it("format working right", () => {
       // setting value of asset
       sampleValue.value = value;
-      console.log(sampleValue.value)
       expect(sampleValue.fixed).toBe(fixed);
       expect(sampleValue.wei).toBe(totalVCount);
       expect(sampleValue.value.wei).toBe(totalFixedWei);

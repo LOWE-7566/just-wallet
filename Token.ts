@@ -1,10 +1,15 @@
-import {ethers} from "ethers";
+import {ethers, ContractTransaction } from "ethers";
 import Format from "./Format.js";
-import TransactionLogger from "./Transaction.js";
+import Transaction from "./Transaction.js";
 import GasFormat from "./TokenGasFormat.js";
 import addressValidator from "./checkAddress";
-import {IFormat, Walletish,ITransactionConfig,WalletTransactionalNumber, Signer} from "./types";
+import {IFormat, Walletish,ITransactionConfig,WalletTransactionalNumber, IWalletish} from "./types";
 import { ArgurmentError, ExecutionError } from "./utils/Error";
+import ToSendAndRecipient from "./utils/ToSendAndRecipient.js";
+interface TokenSendTransaction extends ContractTransaction {
+   Transaction: Transaction
+} 
+
 
 export interface Methods{
    allowance:any;
@@ -101,9 +106,9 @@ class ERCTokenManeger {
    
    
    // switch address 
-   useAddress(address:Walletish){
-      const adr = address.address || address.toString()
-      return new ERCTokenManeger(this.#walletOrProvider,adr);
+   useAddress(account:Walletish){
+      const address = (account as IWalletish).address || account.toString()
+      return new ERCTokenManeger(this.#walletOrProvider,address);
    }
    
    // approve
@@ -112,12 +117,14 @@ class ERCTokenManeger {
    }
    
    // send tokens :Promise
-   async send(amount:WalletTransactionalNumber,to:Walletish,config:ITransactionConfig){
+   async send(amount:WalletTransactionalNumber,to:Walletish,config?:ITransactionConfig):Promise<TokenSendTransaction>{
       const decimals = await this.#contract.decimals();
       const factory = Format.Factory(parseInt(decimals));
-      var tx:ITransactionConfig = {value: "", to: ""}
-      tx.to = to.address ? to.address.toString() : to.toString();
-      tx.value = amount.wei || amount._isBigNumber ? amount.toString() : factory(amount);
+
+      var tx: ITransactionConfig = { value: "", to: "" }
+      const { recipient, amountToSend } = ToSendAndRecipient(amount, to, parseInt(decimals));
+      tx.to = recipient;
+      tx.value = amountToSend;
       return new  Promise(async (resolve,reject) => {
          const balance:any = await this.balance;
          const enoughBalance = balance.wei >= tx.to.toString();
@@ -135,9 +142,9 @@ class ERCTokenManeger {
          this.#contract.transfer(tx.to,tx.value,{...config}).then(async (result:any) => {
             try {
                
-               const Transaction:any = new TransactionLogger(tx.value,decimals,this.#walletOrProvider.address,tx.to);
+               const SendTransaction:any = new Transaction(tx.value,decimals,this.#walletOrProvider.address,tx.to);
                const wait = await result.wait();
-               wait.Transaction = Transaction;
+               wait.Transaction = SendTransaction;
                resolve(wait);
             } catch(err:any){
                const error =  new ExecutionError("FETHWallet.send", {...err}, "Send tokens that is lesser or equal to your tken balance ")
@@ -154,12 +161,13 @@ class ERCTokenManeger {
    
    
    // estimateGas:promise
-   async estimateGas (amount:WalletTransactionalNumber,to:Walletish){
+   async estimateGas (amount:WalletTransactionalNumber,to:Walletish):Promise<GasFormat>{
       const decimals:string = await this.#contract.decimals();
       const factory = Format.Factory(parseInt(decimals));
-      const tx:any = {}
-      tx.to = to.address || to;
-      tx.value = amount.wei || amount._isBigNumber ? amount.toString() : factory(amount); 
+      const tx: any = {}
+      const { recipient, amountToSend} = ToSendAndRecipient(amount,to)
+      tx.to = recipient;
+      tx.value = amountToSend; 
       
       
       const isValidAddress = addressValidator(tx.to);
