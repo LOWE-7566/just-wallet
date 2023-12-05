@@ -1,18 +1,14 @@
 {
-  "name": "ethers-wallet",
-  "version": "0.0.1",
+  "name": "just-wallet",
+  "version": "0.0.2",
   "description": "ERC Wallet framework for Eth",
   "main": "./dist/index.js",
   "module": "./es6/index.js",
   "typings": "./typings/index.d.ts",
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "import": "./es6/index.js"
-    },
-    "./types": {
-      "require": "./dist/types.js",
-      "import": "./es6/types.js"
+      "require": "./lib/bundle.cjs.js",
+      "import": "./lib/bundle.esm.js.map"
     }
   },
   "scripts": {
@@ -26,7 +22,8 @@
     "vitest-format": "vitest --test-timeout=500001 -- Format.test.js",
     "vitest-valid-address": "vitest --test-timeout=500001 -- isValidAddress.test.js",
     "vitest-wallet-address": "vitest --test-timeout=500001 -- Wallet-address.test.js",
-    "ganache": "npx ganache-cli -m suffer speed defense cupboard pledge coyote divide fox bleak rhythm elephant slow"
+    "gulp": "gulp",
+    "rollup": "rollup -c rollup.config.js"
   },
   "repository": {
     "type": "git",
@@ -48,10 +45,23 @@
   "dependencies": {
     "@validitor/main": "^0.0.9",
     "ethers": "^5.4.0",
+    "gulp": "^4.0.2",
+    "gulp-cli": "^2.3.0",
+    "gulp-rename": "^2.0.0",
+    "gulp-sourcemaps": "^3.0.0",
+    "gulp-uglify-es": "^3.0.0",
     "zod": "^3.20.6"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
     "ganache": "^7.9.1",
+    "gulp-concat": "^2.6.1",
+    "rollup": "^4.6.1",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-uglify-es": "^0.0.1",
     "tslib": "^2.5.0",
     "typescript": "^4.9.5",
     "vitest": "^0.30.1"

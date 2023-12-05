@@ -5,7 +5,7 @@ import Contract from "./Contract.js";
 import FromSigner from "./fromSigner.js";
 import addressValidator from "./checkAddress.js";
 import TokenWallet  from "./Token.js";
-import { WalletTransactionalNumber,Walletish,Providerish, EthersWallet,Wallet,IFormat,Provider, ITransactionConfig, Address} from "./types";
+import { WalletTransactionalNumber,Walletish,Providerish, IFormat, ITransactionConfig} from "./types";
 import send from "./Send.js";
 import estimateGas from "./EstimateGas.js"
 import BN from "./utils/BN.js";
