@@ -6,7 +6,7 @@ import {abi, bin} from "./tokenBin";
 const provider = new Wallet.Provider();
 
 
-const wallet0 = new ethers.Wallet("0x4694ced5709eb2202071ee6bbce0477507319b96c1e82b387b27b28ebc765666",provider);
+const wallet0 = new ethers.Wallet("4694ced5709eb2202071ee6bbce0477507319b96c1e82b387b27b28ebc765666",provider);
 const wallet1 = new ethers.Wallet("0xf8cd5984daf93e18847b7cd636277c0f200e9b60c4081e680e0cd52572cba9ba",provider);
 const getWallet =  async ():Promise<any> => {
    const signer = await provider.getSigner();
@@ -47,6 +47,7 @@ describe("Test Wallet From Signer", async () => {
    })
    
    
+
 })
 
 
