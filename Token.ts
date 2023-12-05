@@ -1,40 +1,29 @@
-import {ethers, ContractTransaction } from "ethers";
+import {ethers, ContractTransaction, Wallet } from "ethers";
 import Format from "./Format.js";
 import Transaction from "./Transaction.js";
 import GasFormat from "./TokenGasFormat.js";
 import addressValidator from "./checkAddress";
-import {IFormat, Walletish,ITransactionConfig,WalletTransactionalNumber, IWalletish} from "./types";
+import {IFormat, Walletish,ITransactionConfig,WalletTransactionalNumber, IWalletish, Providerish, Contract} from "./types";
 import { ArgurmentError, ExecutionError } from "./utils/Error";
 import ToSendAndRecipient from "./utils/ToSendAndRecipient.js";
+import FETHWallet from "./Wallet.js";
+import Provider from "./Provider.js";
 interface TokenSendTransaction extends ContractTransaction {
    Transaction: Transaction
 } 
 
 
-export interface Methods{
-   allowance:any;
-   approve: any;
-   balanceOf: any;
-   decimals: any;
-   name: any;
-   symbol: any;
-   totalSupply: any;
-   getMetadata : any;
-   address:string;
-}
+/** Abi of the Token  */
 const abi = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]` 
-interface ERCTokenManegerConfig {
-   provider:any;
-   wallet:any; 
-   address:string;
-   isSigner:boolean;
-}
 
 
+
+/**
+ * A Wallet for Tokens  
+ */
 class ERCTokenManeger {
-   #walletOrProvider:any;
-   #contract:any
-   defaultMethods:Methods;
+   #walletOrProvider:Walletish|Providerish
+   #contract:ethers.Contract
    getMetadata:any;
    
    
@@ -45,29 +34,32 @@ class ERCTokenManeger {
       }
       
       this.#walletOrProvider = walletOrProvider.Wallet || walletOrProvider;
-      this.#contract = new ethers.Contract(adr,abi, this.#walletOrProvider);
-      this.defaultMethods = {
-         address : this.#contract.address,
-         allowance: this.#contract.allowance,
-         approve: this.#contract.approve,
-         balanceOf: this.#contract.balanceOf,
-         decimals: this.#contract.decimals,
-         name: this.#contract.name,
-         symbol: this.#contract.symbol,
-         totalSupply: this.#contract.totalSupply,
-         getMetadata : async () => {
-            const name = await this.#contract.name();
-            const symbol = await this.#contract.symbol();
-            const decimals = await this.#contract.decimals();
-            const __totalSupply = await this.#contract.totalSupply();
-            const totalSupply = new Format.Wei(__totalSupply.toString(), decimals.toString());
-            return {name,symbol,decimals,totalSupply}
-         }
-         
+      this.#contract = new ethers.Contract(adr,abi, (this.#walletOrProvider as any));
       }
-      
-      
+
+   
+get defaultMethods(){
+   return {
+      address: this.#contract.address,
+      allowance: this.#contract.allowance,
+      approve: this.#contract.approve,
+      balanceOf: this.#contract.balanceOf,
+      decimals: this.#contract.decimals,
+      name: this.#contract.name,
+      symbol: this.#contract.symbol,
+      totalSupply: this.#contract.totalSupply,
+      getMetadata: async () => {
+         const name = await this.#contract.name();
+         const symbol = await this.#contract.symbol();
+         const decimals = await this.#contract.decimals();
+         const __totalSupply = await this.#contract.totalSupply();
+         const totalSupply = new Format.Wei(__totalSupply.toString(), decimals.toString());
+         return { name, symbol, decimals, totalSupply }
+      }
    }
+}
+         
+
    
    // account address;
    // return metadata => Promise {name,symbol,decimals,totalSupply}
@@ -86,7 +78,7 @@ class ERCTokenManeger {
       const balanceOf = this.defaultMethods.balanceOf ;
       return new Promise(async (resolve:any,reject:any) => {
          try{
-            const __address:any = wallet.address || await wallet.getAddress();
+            const __address:any = (wallet as any).address || await (wallet as any).getAddress();
             const address =__address.toString();
             decimals().then((decimal:any) => {
                balanceOf(address).then((bal:any) => resolve(
@@ -142,7 +134,7 @@ class ERCTokenManeger {
          this.#contract.transfer(tx.to,tx.value,{...config}).then(async (result:any) => {
             try {
                
-               const SendTransaction:any = new Transaction(tx.value,decimals,this.#walletOrProvider.address,tx.to);
+               const SendTransaction:any = new Transaction(tx.value,decimals,(this.#walletOrProvider as FETHWallet).address ,tx.to);
                const wait = await result.wait();
                wait.Transaction = SendTransaction;
                resolve(wait);
@@ -160,7 +152,7 @@ class ERCTokenManeger {
    }
    
    
-   // estimateGas:promise
+   // estimateGas:promise 
    async estimateGas (amount:WalletTransactionalNumber,to:Walletish):Promise<GasFormat>{
       const decimals:string = await this.#contract.decimals();
       const factory = Format.Factory(parseInt(decimals));
@@ -188,5 +180,6 @@ class ERCTokenManeger {
    }
    
 }
+
 
 export default ERCTokenManeger;

@@ -6,7 +6,9 @@ import { ArgurmentError, ExecutionError } from "./utils/Error";
 import { BigNumber, Transaction as ETHtransaction} from "ethers";
 import ToSendAndRecipient from "./utils/ToSendAndRecipient";
 
-interface SendTransaction extends ETHtransaction{
+
+
+export interface SendTransaction extends ETHtransaction{
    Transaction : Transaction
 }
 

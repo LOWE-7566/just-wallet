@@ -5,22 +5,28 @@ const utils = ethers.utils ;
 const BigNumber = ethers.BigNumber;
 
 
-/**
- * * * you can separate the number string by hipen ex. 100-000 or 100,000 for 100000  
- * * **/
- 
- 
+
+ /**
+  * A class that formats any number into ethers or a whole into different properties that is suitable for displays 
+  */
  class Format implements IFormat {
-    _isFormat:boolean;
+    _isFormat:boolean; // indicates that it is a formaat
     inputValue:string|number; // value provided
     wei:string; // wei the smallest value
     fixed:string; // this is the whole value
-    walletReady:string;
-    moneyValue:string;
-    separated:string;
-    moneyValueSeparated:string;
+    walletReady:string; // will cut give a modified balance reprecentation and good enough to display as a balance 
+    moneyValue:string; // will trim the decimal point into .00 
+    separated:string; // will display it as ethers and will put , every 3 digits or .toLocale 
+    moneyValueSeparated:string; // 
     assetValue:string;
-    decimals:number;
+    decimals: number;
+    
+    /**
+     * 
+     * @param str the value of ethers the user can put - to separe the numbers like 9.123-456-789 
+     * @param decimals  // how many decimals {useful for using tokens} default to `18`
+     * 
+     */
     constructor(str: string, decimals?: number) {
        const value:string = str.replaceAll(/-|,/g,"");
        this._isFormat = true;
@@ -50,25 +56,35 @@ const BigNumber = ethers.BigNumber;
           
        }
     }
-    // returns bigNumber of wie 
+    /**
+     * 
+     * @returns will create a wei bignumber representation 
+     */
     BN(){
        return BigNumber.from(this.wei);
     }
     
-    // return BigNumber of fixed;
+    // will make ethers bignumber representation
     FixedBN(){
        return BigNumber.from(this.fixed);
     }
     
-    
+    /** will give the wiw of any balance */
     toString(){
        return this.wei;
     }
-    // use wie to get Format Object
+    
+    
     
     static get  Wei(){
        class FormatWie extends Format {
-          constructor(value:string,_decimals?:number){
+          
+   /**
+    * accepts wei rather than wrgwea 
+    * @param value the wei 
+    * @param _decimals how many decimals it s 
+    */
+          constructor(value: string, _decimals?: number) {
              const dec = _decimals || 18;
              const parsedValue:string = value.toString().replaceAll(/-|,/g,"");
              const wei:string =   utils.formatUnits(parsedValue,dec);

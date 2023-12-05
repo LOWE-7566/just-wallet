@@ -2,7 +2,9 @@ import {ethers} from "ethers";
 import Wallet from "./Wallet.js"
 import ContractDeployer from "./ContractDeployer.js";
 import { type ContractInterface, } from "ethers";
-import { type Provider, type Signer } from "./types";
+import { type Signer } from "./types";
+
+// An ethers contract but modified 
 const EthContract = ethers.Contract;
 class Contract {
   #contract:any;
@@ -17,7 +19,13 @@ class Contract {
   _wrappedEmits:any;
   address:any;
   resolvedAddress:any;
-  call:any;
+  call: any;
+  /**
+   * Create a new contract instance
+   * @param address the contract address
+   * @param abi the abi of the contract 
+   * @param signer is the signer that will be signingg the contracts transaction
+   */
   constructor(address:string,abi:ContractInterface|string,signer:any){
     const contract = new EthContract(address,abi,signer);
     this.#contract = contract;
@@ -28,6 +36,7 @@ class Contract {
         this[key] = value;
       }
     })
+
     this.interface = contract.interface;
     this.signer = new Wallet(signer.provider || signer, signer.privateKey);
     this.callStatic = contract.callStatic;
@@ -47,6 +56,7 @@ class Contract {
       this.call[key] = contract[key];
     }
   }
+  // create a contract factory
   static get Deployer(){
     return ContractDeployer;
   }

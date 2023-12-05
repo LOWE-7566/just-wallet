@@ -4,6 +4,7 @@
   "description": "ERC Wallet framework for Eth",
   "main": "./dist/index.js",
   "module": "./es6/index.js",
+  "typings": "./typings/index.d.ts",
   "exports": {
     ".": {
       "require": "./dist/index.js",
@@ -16,7 +17,7 @@
   },
   "scripts": {
     "compile": "tsc --watch",
-    "build": "tsc -p tsconfig.json && tsc -p  es6tsconfig.json",
+    "build": "tsc -p tsconfig.json && tsc -p  tsconfig.json --target ESNext --outDir ./es6 --module es6",
     "test": "vitest --test-timeout=500001",
     "vitest": "vitest --coverage --test-timeout=500001",
     "vitest-from-signer": "vitest --test-timeout=500001 -- FromSigner.test.js",

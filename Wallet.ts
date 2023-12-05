@@ -1,7 +1,5 @@
 import { ethers }  from "ethers";
 import Format  from "./Format.js";
-import GasFormat from "./GasFormat.js";
-import Transaction from "./Transaction.js";
 import FETHProvider from "./Provider.js";
 import Contract from "./Contract.js";
 import FromSigner from "./fromSigner.js";
@@ -11,13 +9,19 @@ import { WalletTransactionalNumber,Walletish,Providerish, EthersWallet,Wallet,IF
 import send from "./Send.js";
 import estimateGas from "./EstimateGas.js"
 import BN from "./utils/BN.js";
-const abi = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"spender","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"spender","type":"address"}],"name":"allowance","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"spender","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"approve","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"decimals","outputs":[{"internalType":"uint8","name":"","type":"uint8"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalSupply","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transfer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"transferFrom","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}]`
 import { ArgurmentError } from "./utils/Error.js";
+
 
 const utils = {
    BN
 }
 const privatekeyRegExp =  /^0x[0-9a-fA-F]/g;
+
+/**
+ * A class that will serve as the main backbone of the  Wallet 
+ * This will hold all of the basic functionality which includes using ethers for sending, estimating gas,
+ * and other helpers but it's main use is to handle tokens and eth of the wallet and how you will going to display them 
+ */
 export class FETHWallet {
    mnemonic:any;
    #providerInput:any
@@ -25,40 +29,46 @@ export class FETHWallet {
    decimals:number;
    _isWallet:boolean;
    
-   
+   /**
+    * 
+    * @param wallet  is iether a privatekey, mnemonic pharse that will indicate that it is an account 
+    * @param provider is the provider it can be any other ethers provider but if not provided then it will use 127.0.0.1:8545 
+    */   
    constructor(wallet:Walletish, provider:Providerish){
       
       if(!wallet){
          throw new ArgurmentError("FETHWallet.constructor",undefined, "wallet", wallet,"A ethers Wallet, Mnemonic Wallet, PrivateKey, an new ethers.prototype.Wallet or new FETHWallet", "Providing A Valid Ptovider");
       } 
-      
       if(!provider){
          throw new ArgurmentError("FETHWallet.constructor",undefined, "provider", this.#providerInput,"A ethers provider or FETHWallet.prototype.Provider.", "Providing A Valid Provider");
       }
       
-      this.#providerInput = provider;
+      this.#providerInput = provider; 
       this.#walletInput = wallet;
-      this.decimals = 18 ;
+      this.decimals = 18 ; // ethers has 18 decimals 
       this._isWallet = true;
    }
-   
+
+
    // provider 
    get provider(){
       let __provider:any;
       if(!this.#providerInput){
          throw new ArgurmentError("FETHWallet.constructor",undefined, "provider", this.#providerInput,"A ethers provider or FETHWallet.prototype.Provider.", "Providing A Valid Provider");
       } else if(typeof this.#providerInput === "string"){
-         __provider = new FETHProvider(this.#providerInput || `http://localhost:8545`);
+         __provider = new FETHProvider(this.#providerInput || `http:127.0.0.1:8545`);
       } else if(this.#providerInput._isProvider){
          __provider = this.#providerInput;
       } else {
-         __provider = new FETHProvider(`http://localhost:8545`);
+         __provider = new FETHProvider(`http:127.0.0.1:8545`);
       }
       return __provider;
    }
    
    
-   
+   /**
+    * This will get the main ethers wallet created because FETHWallet class only serves as a wrapper
+    */
    get Wallet(){
       let __wallet;
       if(this.#walletInput === undefined){
@@ -68,9 +78,8 @@ export class FETHWallet {
       const walletLength = 66 ;
       
       
-      
       // if wallet provided mnemonic key or privateKey
-      if(typeof this.#walletInput === "string"){
+      if (typeof this.#walletInput === "string") {
          const isPrivate:any =  this.#walletInput.match(privatekeyRegExp);
          const isValidPrivateKey = !!isPrivate;
          
@@ -78,6 +87,7 @@ export class FETHWallet {
          if(isValidPrivateKey && this.#walletInput?.length === walletLength){
             __wallet = new ethers.Wallet(this.#walletInput,this.provider);
             
+            // chech if it is a valid mnemonic 
          } else if(ethers.utils.isValidMnemonic(this.#walletInput)) {
             const fromMnemonicWallet =  ethers.Wallet.fromMnemonic(this.#walletInput);
             const __privateKey = fromMnemonicWallet.privateKey;
@@ -106,6 +116,9 @@ export class FETHWallet {
       return this.Wallet.privateKey;
    }
    
+   /**
+    * getter for the nalance that is returneed not as a BigNumber or but a format 
+    */
    get balance():Promise<IFormat>{
       
       return new Promise((resolve,reject) => {
@@ -117,7 +130,10 @@ export class FETHWallet {
       
    }
    
-   // switch account 
+   /**
+    * Somethimes the same wallet used may like to switch wallets so to switch wallets 
+    * @param wallet is an ethers wallet, mnemonic or FETH wallet class 
+    */ 
    switchAccount(wallet:Walletish){
       this.#walletInput = wallet;
    }
@@ -127,11 +143,12 @@ export class FETHWallet {
       this.#providerInput = providerStringOrProvider;
    }
    
-   // useAs
+   // use as a different wallet, this feature does not affect the original wallet
    useAs(wallet:Walletish){
       return new FETHWallet(wallet,this.provider);
    }
    
+   // use different provider either new network or other provider like infura, alchemy or just the JSONRPCProvider 
    useAt(provider:string|Providerish){
       return new FETHWallet(this.#walletInput,provider);
    }
@@ -155,53 +172,41 @@ export class FETHWallet {
    }
    
    
-   
    // Format Format
    static get Format(){
       return Format;
    }
-   // from signer 
+
+
+   /**
+    * sometimes user does not have an access to the private key but able to use as a signer, like in browser providers (metamask) 
+    * or in hardhat wher you can get all of the signers availble to a test networks either ganache or the hardhat node, 
+    * but still it still has the same functionality as usign privatekeys or mnemonic to manage a wallet
+    */
    static get FromSigner() {
       return FromSigner;
    }
    
+   // a static getter pointing to a provider note it is a JSONRPCProvider 
    static get Provider(){
       return FETHProvider;
    }
    
+   // a function that validates if the @param address is a valid address
    static isValidAddress(address:string){
       return addressValidator(address);
    }
    
+   // get the ethers instance 
    get ethers(){
       return ethers;
    } 
+   // get the ethers.utils 
    static get utils(){
       return utils;
    }
 }
 
-/*Documentation 
-Wallet is A class that has methods to interact to an ethers Wallet
-Wallet {
-Wallet: new ether.Walllet; 
-provider: JsonRpcProvider
-decimals:number;
-
-get address:string = wallet address 
-get privateKey:string = private Key 
-get balance:Promise<Format> = Formated balance
-
-methods // 
-
-send:Promise<ethers tx> = send tokens 
-estimateBeforeSend:Promiss = estemites gas before sending them
-estimateGas:Promise<GasFormat> estimating gas 
-Token:TokenWallet
-
-}
-
-*/
 
 
 

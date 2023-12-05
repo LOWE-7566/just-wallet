@@ -1,11 +1,18 @@
 import { ethers } from "ethers";
-import Wallet from "./Wallet"
+
+/**
+ * A class that extends the JsonRpcProvider 
+ */
 const JsonRpcProvider = ethers.providers.JsonRpcProvider;
 const Web3Provider = ethers.providers.Web3Provider;
+
 class Provider extends JsonRpcProvider {
   constructor(provider?:string){
     super(provider || "http://127.0.0.1:8545");
   }
+  /**
+   * indicate that the provider is ready 
+   */
   get isReady(){
     return new Promise<boolean>(async (resolve, reject) => {
       const ready = await this.ready;
@@ -18,7 +25,7 @@ class Provider extends JsonRpcProvider {
   }
   
   
-  // ethers
+  // identify ir it is an ethers provider 
   Ethers(provider:any){
     if(provider._isProvider){
       throw new Error("Provider is not ethers.Provider")
@@ -27,7 +34,10 @@ class Provider extends JsonRpcProvider {
   }
   
   // Web3Provider
-  static get Web3(){
+  /**
+   * A Static getter that resolve for web3Provider like metatmask 
+   */
+  static get Browser(){
     return Web3Provider;
   }
   
