@@ -16,6 +16,7 @@ describe("Test Format if it gives the right data", () => {
       expect(sampleValue.wei).toBe(totalVCount);
       expect(sampleValue.value.wei).toBe(totalFixedWei);
       expect(sampleValue.value.fixed).toBe(totalFixed);
+      expect(sampleValue.decimals).toBe(3);
    })
    
    

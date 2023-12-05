@@ -17,9 +17,9 @@ const BigNumber = ethers.BigNumber;
     walletReady:string; // will cut give a modified balance reprecentation and good enough to display as a balance 
     moneyValue:string; // will trim the decimal point into .00 
     separated:string; // will display it as ethers and will put , every 3 digits or .toLocale 
-    moneyValueSeparated:string; // 
-    assetValue:string;
-    decimals: number;
+    moneyValueSeparated:string; // money value but on locale
+    assetValue:string; // the value of current asset to other assets
+    decimals: number; // the decimal count of the represented assets
     
     /**
      * 
