@@ -1,0 +1,38 @@
+{
+  "name": "just-wallet",
+  "version": "0.0.4",
+  "description": "ERC Wallet framework for Eth",
+  "main": "./bundle.cjs",
+  "module": "./bundle.mjs",
+  "typings": "./types.d.ts",
+  "exports": {
+    ".": {
+      "require": "./bundle.cjs",
+      "import": "./bundle.mjs"
+    }
+  },
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lowecainandaya/just-wallet.git"
+  },
+  "keywords": [
+    "erc20",
+    "wallet",
+    "crypto",
+    "eth",
+    "bitcoin"
+  ],
+  "author": "Lowe Andaya",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lowecainandaya/just-wallet/issues"
+  },
+  "homepage": "https://github.com/lowecainandaya/eth-wallet#readme",
+  "dependencies": {
+  },
+  "devDependencies": {
+   
+  }
+}
