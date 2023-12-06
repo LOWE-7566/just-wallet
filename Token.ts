@@ -3,12 +3,11 @@ import Format from "./Format.js";
 import Transaction from "./Transaction.js";
 import GasFormat from "./TokenGasFormat.js";
 import addressValidator from "./checkAddress";
-import {IFormat, Walletish,ITransactionConfig,WalletTransactionalNumber, IWalletish, Providerish, Contract} from "./types";
+import {IFormat, Walletish,ITransactionConfig,WalletTransactionalNumber, IWalletish, Providerish, Prettify, Contract }from "./types";
 import { ArgurmentError, ExecutionError } from "./utils/Error";
 import ToSendAndRecipient from "./utils/ToSendAndRecipient.js";
-import FETHWallet from "./Wallet.js";
-import Provider from "./Provider.js";
-interface TokenSendTransaction extends ContractTransaction {
+import JustWallet from "./Wallet.js";
+interface TokenSendTransaction extends Prettify<Transaction> {
    Transaction: Transaction
 } 
 
@@ -23,14 +22,13 @@ const abi = `[{"anonymous":false,"inputs":[{"indexed":true,"internalType":"addre
  */
 class ERCTokenManeger {
    #walletOrProvider:Walletish|Providerish
-   #contract:ethers.Contract
+   #contract:Prettify<ethers.Contract>
    getMetadata:any;
-   
    
    constructor(walletOrProvider:any,address:string){
       const adr = address;
       if(!address || !addressValidator(adr).valid ){
-         throw new ArgurmentError("FETHWallet.Token.constructor",undefined, "address" ,address,"A valid ethers address.", "Providing a valid address.");
+         throw new ArgurmentError("JustWallet.Token.constructor",undefined, "address" ,address,"A valid ethers address.", "Providing a valid address.");
       }
       
       this.#walletOrProvider = walletOrProvider.Wallet || walletOrProvider;
@@ -72,7 +70,7 @@ get defaultMethods(){
    }
    
    // get balance in Format form 
-   get balance():Promise<any>{
+   get balance():Promise<IFormat>{
       const wallet = this.#walletOrProvider;
       const decimals = this.defaultMethods.decimals ;
       const balanceOf = this.defaultMethods.balanceOf ;
@@ -92,13 +90,13 @@ get defaultMethods(){
    
    
    // switchSigner
-   useAs(walletOrProvider:any){
+   useAs(walletOrProvider:any):ERCTokenManeger{
       return new ERCTokenManeger(walletOrProvider,this.#contract.address);
    }
    
    
    // switch address 
-   useAddress(account:Walletish){
+   useAddress(account:Walletish):ERCTokenManeger{
       const address = (account as IWalletish).address || account.toString()
       return new ERCTokenManeger(this.#walletOrProvider,address);
    }
@@ -122,28 +120,28 @@ get defaultMethods(){
          const enoughBalance = balance.wei >= tx.to.toString();
          const isValidAddress = addressValidator(tx.to);
          if(!isValidAddress.valid){
-            throw new ArgurmentError("FETHWallet.Token.send",isValidAddress, "to", tx.to,"A ethers Wallet, Mnemonic Wallet, PrivateKey, an new ethers.Wallet or new FETHWallet", "Providing A Valid Ptovider");
+            throw new ArgurmentError("JustWallet.Token.send",isValidAddress, "to", tx.to,"A ethers Wallet, Mnemonic Wallet, PrivateKey, an new ethers.Wallet or new JustWallet", "Providing A Valid Ptovider");
             return;
          }
          // if account has enough balance 
          if(!enoughBalance){
             // if transaction exeeds balance
-            throw new ExecutionError("FETHWallet.Token.send",{balance : balance.wei, error: `not enough balance`, amount : tx.value }, "Send tokens that is lesser or equal to your tken balance ")
+            throw new ExecutionError("JustWallet.Token.send",{balance : balance.wei, error: `not enough balance`, amount : tx.value }, "Send tokens that is lesser or equal to your tken balance ")
             
          }
          this.#contract.transfer(tx.to,tx.value,{...config}).then(async (result:any) => {
             try {
                
-               const SendTransaction:any = new Transaction(tx.value,decimals,(this.#walletOrProvider as FETHWallet).address ,tx.to);
+               const SendTransaction:any = new Transaction(tx.value,decimals,(this.#walletOrProvider as JustWallet).address ,tx.to);
                const wait = await result.wait();
                wait.Transaction = SendTransaction;
                resolve(wait);
             } catch(err:any){
-               const error =  new ExecutionError("FETHWallet.send", {...err}, "Send tokens that is lesser or equal to your tken balance ")
+               const error =  new ExecutionError("JustWallet.send", {...err}, "Try Again Later something went wrong ")
                reject(error);
             }
          }).catch((err:any) => {
-            const error =  new ExecutionError("FETHWallet.send", {...err}, "Send tokens that is lesser or equal to your tken balance ")
+            const error =  new ExecutionError("JustWallet.send", {...err}, "Try Again Later something went wrong ")
             reject(error);
          })
          
@@ -165,15 +163,14 @@ get defaultMethods(){
       const isValidAddress = addressValidator(tx.to);
       return new Promise((resolve,reject) => {
          if(!isValidAddress.valid){
-            throw new ArgurmentError("FETHWallet.Token.estimateGas",isValidAddress, "to", tx.to,"A ethers Wallet, Mnemonic Wallet, PrivateKey, an new ethers.Wallet or new FETHWallet", "Providing A Valid Ptovider");
-            return;
+            throw new ArgurmentError("JustWallet.Token.estimateGas",isValidAddress, "to", tx.to,"A ethers Wallet, Mnemonic Wallet, PrivateKey, an new ethers.Wallet or new JustWallet", "Providing A Valid Ptovider");
          }
          
          this.#contract.estimateGas.transfer(tx.to,tx.value)
          .then((res:any) => {
             resolve(new GasFormat(tx,res,parseInt(decimals)));
          }).catch((err:any) => {
-            const error =  new ExecutionError("FETHWallet.estimateGas", {...err}, "Send tokens that is lesser or equal to your tken balance ")
+            const error =  new ExecutionError("JustWallet.estimateGas", {...err}, "Send tokens that is lesser or equal to your tken balance ")
             reject(error);
          })
       });

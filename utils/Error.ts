@@ -14,9 +14,11 @@ export class ErrorLogger extends Error{
    
 }
 
+
 // ArgurmentError is an error for wrong arguements 
 export class ArgurmentError extends ErrorLogger {
-   constructor(ofInstance:string,data:any,parameter:string,value:any,required:string,suggest?:string) {
+   constructor(ofInstance: string,
+      data: any, parameter: string, value: any, required: string, suggest?: string) {
       const code = "NOT_VALID_ARGS";
       const message = `Invalid arguments provided in ${ ofInstance }.`;
       const addData = data ? {parameter,value,required,...data} : {parameter,value,required,};
@@ -24,6 +26,7 @@ export class ArgurmentError extends ErrorLogger {
       this.message = message;
    }
 }
+
 
 // this error is called whenever when executing something throws into Error
 export class ExecutionError extends ErrorLogger {

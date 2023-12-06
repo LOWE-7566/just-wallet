@@ -1,6 +1,6 @@
 import Format from "./Format";
 import { ITransactionConfig } from "./types";
-import { BigNumberish } from "ethers";
+import { BigNumberish } from "./types";
 export declare class GasFormat extends Format.Wei {
     _estimatedGas: number | BigNumberish | BigInt;
     estimatedGasInEther: string;

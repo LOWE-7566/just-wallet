@@ -1,5 +1,4 @@
 import TokenWallet from "./Token.js";
-import GasFormat from "./GasFormat.js";
 import { Walletish, WalletTransactionalNumber, ITransactionConfig } from "./types";
 export declare class FromSignerWallet {
     #private;
@@ -11,7 +10,7 @@ export declare class FromSignerWallet {
     switchSigner(signer: any): void;
     useAs(signer: any): FromSignerWallet;
     send(amount: WalletTransactionalNumber, to: Walletish, config?: string | ITransactionConfig): Promise<import("./Send").SendTransaction>;
-    estimateGas(amount: WalletTransactionalNumber, to: Walletish): Promise<GasFormat>;
+    estimateGas(amount: WalletTransactionalNumber, to: Walletish): Promise<import("./GasFormat.js").GasFormat>;
     Token(addr: any): TokenWallet;
     static isValidAddress(address: string): import("./types").isValidAddressInterface;
 }

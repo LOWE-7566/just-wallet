@@ -1,7 +1,7 @@
-import { ethers, type ContractInterface, type BytesLike } from "ethers";
+import { ethers, type ContractInterface } from "ethers";
 declare const EthContract: typeof ethers.ContractFactory;
 declare class ContractDeployer extends EthContract {
-    constructor(abi: BytesLike | string, bin: ContractInterface | string, signer: any);
+    constructor(abi: string, bin: ContractInterface, signer: any);
     get Deploy(): any;
 }
 export default ContractDeployer;

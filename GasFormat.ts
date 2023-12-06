@@ -1,7 +1,7 @@
 import {ethers} from "ethers";
 import Format from "./Format";
 import { ITransactionConfig } from "./types";
-import { BigNumberish } from "ethers";
+import { BigNumberish } from "./types";
 const BigNumber:any = ethers.BigNumber;
 
 

@@ -1,19 +1,20 @@
 {
   "name": "just-wallet",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "ERC Wallet framework for Eth",
   "main": "./dist/index.js",
-  "module": "./es6/index.js",
   "typings": "./typings/index.d.ts",
   "exports": {
     ".": {
-      "require": "./lib/bundle.cjs.js",
-      "import": "./lib/bundle.esm.js.map"
+      "require": "./lib/bundle.cjs",
+      "import": "./lib/bundle.mjs"
     }
   },
   "scripts": {
     "compile": "tsc --watch",
-    "build": "tsc -p tsconfig.json && tsc -p  tsconfig.json --target ESNext --outDir ./es6 --module es6",
+    "build": "tsc -p tsconfig.json --module commonjs  && rollup -c rollup.config.js ",
+    "universal-compile": "tsc -p tsconfig.json --module commonjs && tsc -p  tsconfig.json --target ESNext --outDir ./es6 --module es6",
+    "generate-docs" : "typedoc ./index.ts",
     "test": "vitest --test-timeout=500001",
     "vitest": "vitest --coverage --test-timeout=500001",
     "vitest-from-signer": "vitest --test-timeout=500001 -- FromSigner.test.js",
@@ -21,13 +22,11 @@
     "vitest-wallet-from-mnemonic": "vitest --test-timeout=500001 -- WalletFromMnemonic.test.js",
     "vitest-format": "vitest --test-timeout=500001 -- Format.test.js",
     "vitest-valid-address": "vitest --test-timeout=500001 -- isValidAddress.test.js",
-    "vitest-wallet-address": "vitest --test-timeout=500001 -- Wallet-address.test.js",
-    "gulp": "gulp",
-    "rollup": "rollup -c rollup.config.js"
+    "vitest-wallet-address": "vitest --test-timeout=500001 -- Wallet-address.test.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lowecainandaya/eth-wallet.git"
+    "url": "git+https://github.com/lowecainandaya/just-wallet.git"
   },
   "keywords": [
     "erc20",
@@ -39,7 +38,7 @@
   "author": "Lowe Andaya",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lowecainandaya/eth-wallet/issues"
+    "url": "https://github.com/lowecainandaya/just-wallet/issues"
   },
   "homepage": "https://github.com/lowecainandaya/eth-wallet#readme",
   "dependencies": {
@@ -50,6 +49,7 @@
     "gulp-rename": "^2.0.0",
     "gulp-sourcemaps": "^3.0.0",
     "gulp-uglify-es": "^3.0.0",
+    "just-wallet": "./lib",
     "zod": "^3.20.6"
   },
   "devDependencies": {
@@ -60,6 +60,7 @@
     "gulp-concat": "^2.6.1",
     "rollup": "^4.6.1",
     "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-dts": "^6.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-uglify-es": "^0.0.1",
     "tslib": "^2.5.0",

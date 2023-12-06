@@ -1,14 +1,14 @@
-import { WalletTransactionalNumber,Walletish,ITransactionConfig, IWalletish } from "./types";
+import { WalletTransactionalNumber,Walletish,ITransactionConfig, Prettify } from "./types";
 import Transaction from "./Transaction";
 import Format from "./Format";
 import addressValidator from "./checkAddress";
 import { ArgurmentError, ExecutionError } from "./utils/Error";
-import { BigNumber, Transaction as ETHtransaction} from "ethers";
+import {  Transaction as ETHtransaction} from "ethers";
 import ToSendAndRecipient from "./utils/ToSendAndRecipient";
 
 
 
-export interface SendTransaction extends ETHtransaction{
+export interface SendTransaction extends  Prettify<ETHtransaction> {
    Transaction : Transaction
 }
 
@@ -16,10 +16,10 @@ async function send(amount:WalletTransactionalNumber,to:Walletish,data:any,confi
    
    const wallet = data.Wallet || data.signer;
    if(!to){
-      throw new ArgurmentError("FETHWallet.send",undefined, "to", to,"a ethers wallet address or an onject that has \".address\" property");
+      throw new ArgurmentError("JustWallet.send",undefined, "to", to,"please provide a valid address or any ethers Wallet or JustWallet instance");
    }
    if(!amount){
-      throw new ArgurmentError("FETHWallet.send",undefined, "amount", amount,"a number string, ethers.BigNumber or BN, or a Format", );
+      throw new ArgurmentError("JustWallet.send",undefined, "amount", amount,"please input valid amount", );
    }
    return new Promise(async (resolve,reject) => {
       // check balance 
@@ -44,13 +44,13 @@ async function send(amount:WalletTransactionalNumber,to:Walletish,data:any,confi
       tx.value = amountToSend; 
       // check if address provided is valid;
       if(!isValidAddress.valid){
-         throw new ArgurmentError("FETHWallet.send",isValidAddress, "to", tx.to,"A ethers Wallet, Mnemonic Wallet, PrivateKey, an new ethers.Wallet or new FETHWallet", "Providing A Valid Ptovider");
+         throw new ArgurmentError("JustWallet.send",isValidAddress, "to", tx.to,"A valid address", "Providing A Valid Ptovider");
          return;
       } 
       // if account has enough balance 
       if(!enoughBalance){
          // if transaction exeeds balance
-         throw new ExecutionError("FETHWallet.send",{balance : balance.wei, error: `not enough balance`, amount : tx.value }, "Send tokens that is lesser or equal to your  balance ")
+         throw new ExecutionError("JustWallet.send",{balance : balance.wei, error: `not enough balance`, amount : tx.value })
       }
       
       //sending transaction.... promise
@@ -61,12 +61,12 @@ async function send(amount:WalletTransactionalNumber,to:Walletish,data:any,confi
             wait.Transaction = new Transaction(tx.value|| "",18,address,tx.to);
             resolve(wait);
          } catch(err:any){
-            const error =  new ExecutionError("FETHWallet.send", {...err}, "Sendp tokens that is lesser or equal to your tken balance ")
+            const error =  new ExecutionError("JustWallet.send", {...err}, "Try Again unexpected error occured")
             reject(error);
          }
          
       }).catch((err:any) => {
-         const error =  new ExecutionError("FETHWallet.send", {...err}, "Send tokens that is lesser or equal to your tken balance ")
+         const error =  new ExecutionError("JustWallet.send", {...err}, "Try Again unexpected error occured ")
             reject(error);
       })
    })

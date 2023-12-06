@@ -1,5 +1,5 @@
-import { describe, it, expect} from "vitest";
-import  Wallet from "../Wallet";
+import { describe, it, expect } from "vitest";
+import Wallet from "../Wallet"
 import { ethers } from "ethers";
 import {abi, bin} from "./tokenBin";
 

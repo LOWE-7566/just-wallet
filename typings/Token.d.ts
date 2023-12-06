@@ -1,26 +1,44 @@
-import { ContractTransaction } from "ethers";
 import Transaction from "./Transaction.js";
 import GasFormat from "./TokenGasFormat.js";
-import { Walletish, ITransactionConfig, WalletTransactionalNumber } from "./types";
-interface TokenSendTransaction extends ContractTransaction {
+import { Walletish, ITransactionConfig, WalletTransactionalNumber, Prettify } from "./types";
+interface TokenSendTransaction extends Prettify<Transaction> {
     Transaction: Transaction;
-}
-export interface Methods {
-    allowance: any;
-    approve: any;
-    balanceOf: any;
-    decimals: any;
-    name: any;
-    symbol: any;
-    totalSupply: any;
-    getMetadata: any;
-    address: string;
 }
 declare class ERCTokenManeger {
     #private;
-    defaultMethods: Methods;
     getMetadata: any;
     constructor(walletOrProvider: any, address: string);
+    get defaultMethods(): {
+        address: string;
+        allowance: any;
+        approve: any;
+        balanceOf: any;
+        decimals: any;
+        name: any;
+        symbol: any;
+        totalSupply: any;
+        getMetadata: () => Promise<{
+            name: any;
+            symbol: any;
+            decimals: any;
+            totalSupply: {
+                _isFormat: boolean;
+                inputValue: string | number;
+                wei: string;
+                fixed: string;
+                walletReady: string;
+                moneyValue: string;
+                separated: string;
+                moneyValueSeparated: string;
+                assetValue: string;
+                decimals: number;
+                BN(): any;
+                FixedBN(): any;
+                toString(): string;
+                value: any;
+            };
+        }>;
+    };
     get metadata(): Promise<unknown>;
     get balance(): Promise<any>;
     useAs(walletOrProvider: any): ERCTokenManeger;

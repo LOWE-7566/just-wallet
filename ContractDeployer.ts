@@ -5,7 +5,7 @@ const EthContract = ethers.ContractFactory
  * A CractFactory Wrapper Class 
  */
 class ContractDeployer extends EthContract  { 
-  constructor(abi:BytesLike|string,bin:ContractInterface|string,signer:any){
+  constructor(abi:string,bin:ContractInterface,signer:any){
     super(bin,abi,signer);
   }
   get Deploy():any{

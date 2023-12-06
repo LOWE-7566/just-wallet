@@ -1,5 +1,11 @@
 node_modules/
+docs/
 dist/
 es6/
+lib/
+
 push.sh
-core
+lib/*.js 
+lib/*.map 
+
+

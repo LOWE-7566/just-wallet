@@ -1,5 +1,5 @@
-import Format from "../Format"
 import { describe, it, expect } from "vitest";
+import { Format } from "just-wallet";
 describe("Test Format if it gives the right data", () => {
    
    const sampleValue = new Format("10",3)

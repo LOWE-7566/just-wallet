@@ -15,7 +15,7 @@ declare class Contract {
     address: any;
     resolvedAddress: any;
     call: any;
-    constructor(address: string, abi: ContractInterface | string, signer: any);
+    constructor(address: string, abi: ContractInterface, signer: any);
     static get Deployer(): typeof ContractDeployer;
 }
 export default Contract;

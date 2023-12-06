@@ -2,15 +2,15 @@ import { ethers, type BigNumberish as BN, BigNumber } from "ethers";
 import Format from "./Format";
 import FETHWallet from "./Wallet";
 import FETHToken from "./Token.js";
-import FromSigner from "./fromSigner"
- import {type Signer as EthSigner, type ContractInterface} from "ethers";
+import FromSigner from "./FromSigner"
+ import {type Signer as EthSigner, } from "ethers";
 import FETHContract from "./Contract"
 import FETHProvider from "./Provider";
  
  
  const ETHProvider = ethers.providers.Provider
-export type WalletTransactionalNumber = string|BigNumber|BN|BigNumberish|BigInt|Format ;
-export type Walletish = IWalletish|Wallet|ethers.Wallet|string;
+export type WalletTransactionalNumber = string|typeof BigNumber| BN|BigNumberish|BigInt|Format ;
+export type Walletish = IWalletish|Wallet|IWallet|Prettify<ethers.Wallet>|string
 export type AnyWallet = typeof ethers.Wallet|Wallet;
 type EthersProvider = typeof ETHProvider;
 export type Providerish = string| FETHProvider| EthersProvider;
@@ -19,7 +19,7 @@ export type Wallet = FETHWallet;
 export type Provider= FETHProvider| EthersProvider;
 export type EthersWallet = typeof ethers.Wallet;
 export type Token = FETHToken;
-export type Signer = Wallet|EthSigner|Provider;
+export type Signer = Wallet|typeof EthSigner|Provider;
 export type Contract = typeof ethers.Contract|FETHContract;
 
 export type Address = string|IWalletish;
@@ -44,19 +44,23 @@ export interface IFormat {
  separated:string;
  moneyValueSeparated:string;
  assetValue:string;
- BN():  ethers.BigNumber;
- FixedBN():  ethers.BigNumber;
+ BN():  typeof ethers.BigNumber;
+ FixedBN():  typeof ethers.BigNumber;
  set value(value:any);
  get value():BigInt;
 
  }
 
+ declare interface MaybeWallet extends Prettify<IWallet> {}
 
-export interface IWalletish  {
+
+
+export interface IWalletish  extends MaybeWallet {
      address:string;
      privateKey:string;
      provider:Provider
- }
+}
+ 
 
 
 export interface isValidAddressInterface {
@@ -66,7 +70,7 @@ export interface isValidAddressInterface {
 }
 
 
-interface IWallet{
+export interface IWallet {
    mnemonic:any;
    decimals:number;
    _isWallet:boolean;
@@ -87,3 +91,11 @@ interface IWallet{
    utils:any;
    
 }
+
+
+ 
+
+export declare type Prettify<T> = {
+   [K in keyof T]: T[K]
+}
+

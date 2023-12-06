@@ -61,12 +61,12 @@ const BigNumber = ethers.BigNumber;
      * @returns will create a wei bignumber representation 
      */
     BN(){
-       return BigNumber.from(this.wei);
+       return BigNumber.from(this.wei) as any;
     }
     
     // will make ethers bignumber representation
     FixedBN(){
-       return BigNumber.from(this.fixed);
+       return BigNumber.from(this.fixed) as any;
     }
     
     /** will give the wiw of any balance */

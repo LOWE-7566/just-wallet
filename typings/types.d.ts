@@ -2,12 +2,13 @@ import { ethers, type BigNumberish as BN, BigNumber } from "ethers";
 import Format from "./Format";
 import FETHWallet from "./Wallet";
 import FETHToken from "./Token.js";
+import FromSigner from "./fromSigner";
 import { type Signer as EthSigner } from "ethers";
 import FETHContract from "./Contract";
 import FETHProvider from "./Provider";
 declare const ETHProvider: typeof ethers.providers.Provider;
-export type WalletTransactionalNumber = string | BigNumber | BN | BigNumberish | BigInt | Format;
-export type Walletish = IWalletish | Wallet | ethers.Wallet | string;
+export type WalletTransactionalNumber = string | typeof BigNumber | BN | BigNumberish | BigInt | Format;
+export type Walletish = IWalletish | Wallet | typeof ethers.Wallet | string;
 export type AnyWallet = typeof ethers.Wallet | Wallet;
 type EthersProvider = typeof ETHProvider;
 export type Providerish = string | FETHProvider | EthersProvider;
@@ -16,7 +17,7 @@ export type Wallet = FETHWallet;
 export type Provider = FETHProvider | EthersProvider;
 export type EthersWallet = typeof ethers.Wallet;
 export type Token = FETHToken;
-export type Signer = Wallet | EthSigner | Provider;
+export type Signer = Wallet | typeof EthSigner | Provider;
 export type Contract = typeof ethers.Contract | FETHContract;
 export type Address = string | IWalletish;
 export interface ITransactionConfig {
@@ -38,8 +39,8 @@ export interface IFormat {
     separated: string;
     moneyValueSeparated: string;
     assetValue: string;
-    BN(): ethers.BigNumber;
-    FixedBN(): ethers.BigNumber;
+    BN(): typeof ethers.BigNumber;
+    FixedBN(): typeof ethers.BigNumber;
     set value(value: any);
     get value(): BigInt;
 }
@@ -53,5 +54,28 @@ export interface isValidAddressInterface {
     value: string;
     address?: string;
 }
+export interface IWallet {
+    mnemonic: any;
+    decimals: number;
+    _isWallet: boolean;
+    get provider(): Provider;
+    get Wallet(): EthersWallet;
+    get balance(): Promise<IFormat>;
+    switchAccount(wallet: Walletish): never;
+    switchNetwork(providerStringOrProvider: string): never;
+    useAs(wallet: Walletish): Wallet;
+    useAt(provider: string | Providerish): Wallet;
+    send(amount: WalletTransactionalNumber, to: Walletish, config?: string | ITransactionConfig): Promise<any>;
+    estimateGas(amount: WalletTransactionalNumber, to: Walletish): Promise<any>;
+    Format(): IFormat;
+    FromSigner(): FromSigner;
+    Provider(): Provider;
+    isValidAddress(address: string): isValidAddressInterface;
+    ethers: typeof ethers;
+    utils: any;
+}
+export declare type Prettify<T> = {
+    [K in keyof T]: T[K];
+};
 export {};
 //# sourceMappingURL=types.d.ts.map

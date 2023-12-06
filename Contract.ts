@@ -26,7 +26,7 @@ class Contract {
    * @param abi the abi of the contract 
    * @param signer is the signer that will be signingg the contracts transaction
    */
-  constructor(address:string,abi:ContractInterface|string,signer:any){
+  constructor(address:string,abi:ContractInterface,signer:any){
     const contract = new EthContract(address,abi,signer);
     this.#contract = contract;
     const Keys:any[]  = Object.keys(contract);

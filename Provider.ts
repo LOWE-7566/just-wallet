@@ -37,7 +37,7 @@ class Provider extends JsonRpcProvider {
   /**
    * A Static getter that resolve for web3Provider like metatmask 
    */
-  static get Browser(){
+  static get Web3(){
     return Web3Provider;
   }
   
